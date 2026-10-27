@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Free, browser-based EU AI Act compliance scanner: classify each AI system into risk tiers, check Article 50 transparency, high-risk logging, documentation and human oversight duties, and get a deadline-driven gap report. Reflects Regulation (EU) 2024/1689 as amended by the Digital Omnibus (EU) 2026/1744.">
+<meta name="author" content="Ashish Srivastava">
+<meta property="og:title" content="EU AI Act Compliance Scanner">
+<meta property="og:description" content="Classify your AI systems (prohibited, high, limited, minimal risk), find open obligations and see what is due when, updated for the 2026 Digital Omnibus.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>">
+<title>EU AI Act Compliance Scanner</title>
+</head><body>
+<header class="top"><div><div class="eyebrow">EU AI Act · Regulation (EU) 2024/1689 as amended by (EU) 2026/1744</div><h1>EU AI Act Compliance Scanner</h1>
+<p class="lede">Classify each AI system into a risk tier, identify the obligations that apply to your role, score your readiness, and get a gap report ordered by legal deadline.</p></div>
+<div class="today" id="today"></div></header>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:var(--color-bg,#faf9fc);color:var(--color-text,#1a1a1a);font-family:var(--font-sans,'Helvetica Neue',Segoe UI,Roboto,Arial,sans-serif);font-size:14px;line-height:1.5}
+a{color:var(--color-primary,#9333ea)}
+.top{display:flex;gap:24px;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-primary,#9333ea);font-weight:600}
+h1{margin:4px 0;font-size:24px}h2{font-size:16px;margin:0 0 12px}h3{font-size:13px;margin:14px 0 6px;color:var(--color-text-secondary,#5e5e5e);text-transform:uppercase;letter-spacing:.05em}
+.lede{margin:0;color:var(--color-text-secondary,#5e5e5e);max-width:760px}
+.today{font-family:var(--font-mono,monospace);font-size:12px;color:var(--color-text-muted,#9ca3af)}
+input,select,textarea{font:inherit;color:inherit;background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border,rgba(0,0,0,.12));border-radius:var(--radius-sm,6px);padding:6px 10px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--color-border,rgba(0,0,0,.12));margin:16px 0;position:sticky;top:0;background:var(--color-bg,#faf9fc);z-index:5;padding-top:6px;flex-wrap:wrap}
+.tab{border:0;background:none;padding:10px 14px;font:inherit;font-weight:600;color:var(--color-text-secondary,#5e5e5e);cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:var(--color-primary,#9333ea);border-bottom-color:var(--color-primary,#9333ea)}
+.sp{flex:1}.progress{align-self:center;font-size:12px;color:var(--color-text-muted,#9ca3af);font-family:var(--font-mono,monospace)}
+.btn{border:1px solid var(--color-border,rgba(0,0,0,.12));background:var(--color-bg-secondary,#fff);color:var(--color-text,#1a1a1a);border-radius:var(--radius-sm,6px);padding:6px 12px;font:inherit;font-size:12px;cursor:pointer;transition:all .15s ease}
+.btn:hover{background:var(--color-surface-hover,#f3f4f6)}
+.btn.pri{background:var(--color-primary,#9333ea);color:var(--color-text-on-primary,#fff);border-color:transparent}
+.btn.del{color:var(--color-error-dark,#dc2626)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.view{display:none}.view.on{display:block}
+.card{background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border-light,rgba(0,0,0,.06));border-radius:var(--radius-md,10px);padding:16px;margin-bottom:16px}
+.muted{color:var(--color-text-muted,#9ca3af)}.small{font-size:12px}
+.callout{border-left:3px solid var(--color-info,#3b82f6);background:var(--color-info-bg,rgba(59,130,246,.1));padding:10px 14px;border-radius:var(--radius-sm,6px);font-size:12px;color:var(--color-info-text,#1e40af);margin-bottom:16px}
+.callout.warn{border-color:var(--color-warning,#f59e0b);background:var(--color-warning-bg,rgba(245,158,11,.1));color:var(--color-warning-text,#92400e)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--color-text-secondary,#5e5e5e)}
+.chk{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:13px;cursor:pointer}
+.chk input{margin-top:3px}
+.chk small{display:block;color:var(--color-text-muted,#9ca3af)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 24px}
+details.sys{background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border-light,rgba(0,0,0,.06));border-radius:var(--radius-md,10px);margin-bottom:12px}
+details.sys>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+details.sys>summary::-webkit-details-marker{display:none}
+.sys-body{padding:0 16px 16px;border-top:1px solid var(--color-border-light,rgba(0,0,0,.06))}
+.sname{font-weight:600;font-size:15px}
+.tier{font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--radius-pill,17px);white-space:nowrap}
+.tier.Prohibited{background:var(--color-error,#ef4444);color:#fff}
+.tier.High{background:var(--color-error-bg,rgba(239,68,68,.1));color:var(--color-error-dark,#dc2626);border:1px solid var(--color-error-border,rgba(239,68,68,.3))}
+.tier.Limited,.tier.NotHigh{background:var(--color-warning-bg,rgba(245,158,11,.1));color:var(--color-warning-text,#92400e);border:1px solid var(--color-warning-border,rgba(245,158,11,.3))}
+.tier.Minimal{background:var(--color-success-bg,rgba(34,197,94,.1));color:var(--color-success-dark,#16a34a);border:1px solid var(--color-success-border,rgba(34,197,94,.3))}
+.tier.GPAI{background:var(--color-info-bg,rgba(59,130,246,.1));color:var(--color-info-text,#1e40af);border:1px solid var(--color-info-border,rgba(59,130,246,.3))}
+.why{font-size:12px;color:var(--color-text-secondary,#5e5e5e);margin:10px 0 0;padding:10px 12px;background:var(--color-surface,#f9fafb);border-radius:var(--radius-sm,6px)}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:10px;padding:1px 7px;border-radius:var(--radius-pill,17px);background:var(--color-surface,#f9fafb);border:1px solid var(--color-border-light,rgba(0,0,0,.06));color:var(--color-text-secondary,#5e5e5e);font-family:var(--font-mono,monospace)}
+.chip.now{background:var(--color-error-bg,rgba(239,68,68,.1));color:var(--color-error-dark,#dc2626);border-color:var(--color-error-border,rgba(239,68,68,.3));font-weight:600}
+.chip.soon{background:var(--color-warning-bg,rgba(245,158,11,.1));color:var(--color-warning-text,#92400e);border-color:var(--color-warning-border,rgba(245,158,11,.3));font-weight:600}
+.chip.later{background:var(--color-info-bg,rgba(59,130,246,.1));color:var(--color-info-text,#1e40af);border-color:var(--color-info-border,rgba(59,130,246,.3))}
+.area{margin-bottom:16px}
+.ctl{display:grid;grid-template-columns:1fr auto;gap:8px 16px;padding:12px 0;border-top:1px solid var(--color-border-light,rgba(0,0,0,.06))}
+.ctl:first-of-type{border-top:0}
+.cid{font-family:var(--font-mono,monospace);font-size:11px;color:var(--color-text-muted,#9ca3af);margin-right:6px}
+.cname{font-weight:600}.q{color:var(--color-text-secondary,#5e5e5e);margin-top:2px}
+.seg{display:flex;border:1px solid var(--color-border,rgba(0,0,0,.12));border-radius:var(--radius-sm,6px);overflow:hidden;align-self:start}
+.seg button{border:0;border-left:1px solid var(--color-border-light,rgba(0,0,0,.06));background:var(--color-bg-secondary,#fff);padding:6px 10px;font:inherit;font-size:12px;font-family:var(--font-mono,monospace);cursor:pointer;color:var(--color-text-secondary,#5e5e5e);min-width:34px}
+.seg button:first-child{border-left:0}.seg button:hover{background:var(--color-surface-hover,#f3f4f6)}
+.seg button.on{background:var(--color-primary,#9333ea);color:var(--color-text-on-primary,#fff)}
+.note{grid-column:1/-1;width:100%;font-size:12px;min-height:30px;resize:vertical}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border-light,rgba(0,0,0,.06));border-radius:var(--radius-md,10px);padding:14px}
+.kl{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted,#9ca3af)}
+.kv{font-size:24px;font-weight:600;font-family:var(--font-mono,monospace)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+.bar-row{display:grid;grid-template-columns:190px 1fr 46px;gap:10px;align-items:center;margin:7px 0;font-size:12px}
+.bar{height:10px;background:var(--color-surface-active,#e5e7eb);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;border-radius:6px}
+.pct{font-family:var(--font-mono,monospace);text-align:right}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:var(--color-text-muted,#9ca3af);font-weight:500;padding:8px;border-bottom:1px solid var(--color-border,rgba(0,0,0,.12))}
+td{padding:8px;border-bottom:1px solid var(--color-border-light,rgba(0,0,0,.06));vertical-align:top}
+.st{font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--radius-pill,17px);white-space:nowrap}
+.st.Aligned{background:var(--color-success-bg,rgba(34,197,94,.1));color:var(--color-success-dark,#16a34a)}
+.st.Partial{background:var(--color-warning-bg,rgba(245,158,11,.1));color:var(--color-warning-text,#92400e)}
+.st.Gap{background:var(--color-error-bg,rgba(239,68,68,.1));color:var(--color-error-dark,#dc2626)}
+.st.NA,.st.Unassessed{background:var(--color-surface,#f9fafb);color:var(--color-text-muted,#9ca3af)}
+.tl{display:grid;gap:8px}
+.tl-row{display:grid;grid-template-columns:120px 1fr 150px 90px;gap:12px;align-items:center;padding:8px 10px;border-radius:var(--radius-sm,6px);background:var(--color-surface,#f9fafb);font-size:12px}
+.tl-row.past{opacity:.85}
+.tl-date{font-family:var(--font-mono,monospace);font-weight:600}
+.empty{text-align:center;padding:32px;color:var(--color-text-muted,#9ca3af)}
+footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--color-border,rgba(0,0,0,.12));font-size:12px;color:var(--color-text-secondary,#5e5e5e)}
+@media print{.tabs,.toolbar,footer .noprint{display:none}.view{display:block!important}body{padding:0}details.sys{break-inside:avoid}}
+</style>
+
+<div class="callout warn"><b>Not legal advice.</b> This is an indicative self-assessment. It reflects Regulation (EU) 2024/1689 as amended by the Digital Omnibus on AI, Regulation (EU) 2026/1744 (in force since 27 July 2026). Final classification and obligations depend on your facts, Commission guidelines and national authorities, so confirm them with qualified counsel.</div>
+
+<nav class="tabs">
+<button class="tab on" data-v="org">1 · Organisation</button>
+<button class="tab" data-v="sys">2 · AI systems & risk tiers</button>
+<button class="tab" data-v="obl">3 · Obligations readiness</button>
+<button class="tab" data-v="res">4 · Results & gap report</button>
+<span class="sp"></span><span class="progress" id="prog"></span>
+</nav>
+
+<section class="view on" id="v-org">
+<div class="card"><h2>Organisation profile</h2>
+<div class="form">
+<label>Organisation<input id="o-name" placeholder="Enterprise name"></label>
+<label>Size (affects penalty caps)<select id="o-size"><option value="large">Large enterprise</option><option value="smc">Small mid-cap (under 750 staff, turnover ≤ €150m)</option><option value="sme">SME / start-up</option></select></label>
+</div>
+<h3>Scope (Article 2): is the AI Act relevant to you?</h3>
+<div class="cols">
+<label class="chk"><input type="checkbox" data-o="s_market"><span>We place AI systems or GPAI models on the EU market, or put them into service in the EU<small>Applies wherever you are established</small></span></label>
+<label class="chk"><input type="checkbox" data-o="s_deploy"><span>We are established or located in the EU and use AI systems professionally</span></label>
+<label class="chk"><input type="checkbox" data-o="s_output"><span>We are outside the EU, but the output of our AI systems is used in the EU</span></label>
+</div>
+<h3>Factors that change obligations</h3>
+<div class="cols">
+<label class="chk"><input type="checkbox" data-o="nonEU"><span>We are established outside the EU<small>An EU authorised representative may be required (Art. 22 / 54)</small></span></label>
+<label class="chk"><input type="checkbox" data-o="public"><span>We are a public authority or body<small>Triggers the FRIA and EU database registration as a deployer</small></span></label>
+<label class="chk"><input type="checkbox" data-o="pubsvc"><span>We are a private entity providing public services<small>e.g. education, healthcare, housing or utilities. Triggers the FRIA (Art. 27)</small></span></label>
+</div>
+<h3>Exclusions (Article 2)</h3>
+<div class="cols">
+<label class="chk"><input type="checkbox" data-o="x_mil"><span>Our AI is used exclusively for military, defence or national-security purposes</span></label>
+<label class="chk"><input type="checkbox" data-o="x_rnd"><span>Our AI is used solely for scientific research and development and is not placed on the market</span></label>
+</div>
+<div id="scope-msg"></div>
+</div>
+<div class="toolbar"><button class="btn pri" data-go="sys">Next: add AI systems →</button><span class="sp"></span><button class="btn" id="demo">Load illustrative sample</button><button class="btn del" id="reset">Reset everything</button></div>
+</section>
+
+<section class="view" id="v-sys">
+<div class="toolbar"><button class="btn pri" id="add">+ Add AI system</button><span class="muted small">Classify each AI system you build, buy or use. The tier updates as you answer.</span><span class="sp"></span><button class="btn" data-go="obl">Next: obligations →</button></div>
+<div id="systems"></div>
+</section>
+
+<section class="view" id="v-obl">
+<div class="toolbar"><span class="muted small">Only the obligations that apply to your systems and roles are shown. Score them 0 Not in place · 1 Ad hoc · 2 Partial · 3 Implemented · 4 Managed · N/A.</span><span class="sp"></span><button class="btn" data-go="res">See results →</button></div>
+<div id="obligations"></div>
+</section>
+
+<section class="view" id="v-res">
+<div class="toolbar"><button class="btn pri" id="csv">Export gap report (CSV)</button><button class="btn" id="json">Save assessment (JSON)</button>
+<label class="btn">Load assessment (JSON)<input type="file" id="load" accept=".json" style="display:none"></label><button class="btn" id="print">Print / PDF</button></div>
+<div id="results"></div>
+</section>
+
+<footer>
+<p><b>Built by Ashish Srivastava</b>, Principal Architect, AI Security &amp; Governance. <span class="noprint"><a href="https://github.com/cybersmeashish/cybernonics_tools/tree/main/eu-ai-act-compliance-scanner">Source on GitHub</a> · <a href="../iso27090-ai-security-scanner/">Companion tool: ISO/IEC 27090 AI Security Scanner</a></span></p>
+<p><b>Privacy:</b> runs entirely in your browser. Your inputs are stored only in this browser (localStorage) and are never sent to any server.</p>
+<p><b>Disclaimer:</b> An independent practitioner tool, not affiliated with or endorsed by the European Union, the European Commission or the AI Office. Obligations are summarised and paraphrased from Regulation (EU) 2024/1689 as amended by Regulation (EU) 2026/1744. Not legal advice. Provided "as is", without warranty. Check the official text on EUR-Lex and the Commission's AI Act Service Desk.</p>
+</footer>
+
+<script>
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const DL = {
+ FEB25:['2025-02-02','Original prohibitions and the AI literacy duty apply'],
+ AUG25:['2025-08-02','GPAI model obligations apply (new models)'],
+ AUG26:['2026-08-02','General application: Art. 50 transparency, enforcement and penalties'],
+ DEC26:['2026-12-02','New bans (NCII and CSAM) and marking of synthetic content from legacy systems'],
+ AUG27:['2027-08-02','GPAI models placed on the market before 2 Aug 2025 must comply'],
+ DEC27:['2027-12-02','High-risk obligations for Annex III systems (stand-alone use cases)'],
+ AUG28:['2028-08-02','High-risk obligations for Annex I systems (in regulated products)']
+};
+const days = k => Math.round((new Date(DL[k][0]) - TODAY)/86400000);
+const fmtD = k => new Date(DL[k][0]).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+function urg(k){ const d=days(k); return d<=0 ? ['now','Applies now'] : d<=90 ? ['soon',`Due in ${d} days`] : ['later',`Due ${fmtD(k)}`]; }
+
+const PROHIB = [
+ ['a','Subliminal, manipulative or deceptive techniques that distort behaviour and cause significant harm','FEB25'],
+ ['b','Exploiting vulnerabilities linked to age, disability or social or economic situation, causing significant harm','FEB25'],
+ ['c','Social scoring that leads to detrimental or unjustified treatment','FEB25'],
+ ['d','Predicting the risk that a person will commit a crime based solely on profiling or personality traits','FEB25'],
+ ['e','Untargeted scraping of facial images from the internet or CCTV to build facial recognition databases','FEB25'],
+ ['f','Emotion recognition in the workplace or in education (except for medical or safety reasons)','FEB25'],
+ ['g','Biometric categorisation that infers race, political opinions, union membership, religion or sexual orientation','FEB25'],
+ ['h','Real-time remote biometric identification in public spaces for law enforcement (outside the narrow exceptions)','FEB25'],
+ ['ba','Generating or manipulating realistic non-consensual intimate imagery of identifiable people ("nudifier" apps)','DEC26'],
+ ['bb','Generating child sexual abuse material (CSAM)','DEC26']
+];
+const ANNEX3 = [
+ ['1','Biometrics',[['1a','Remote biometric identification (not simple identity verification)'],['1b','Biometric categorisation by sensitive or protected attributes'],['1c','Emotion recognition']]],
+ ['2','Critical infrastructure',[['2a','Safety component in critical digital infrastructure, road traffic, or the supply of water, gas, heating or electricity']]],
+ ['3','Education and vocational training',[['3a','Admission or assignment to institutions'],['3b','Evaluating learning outcomes'],['3c','Assessing the appropriate level of education'],['3d','Monitoring prohibited behaviour during tests']]],
+ ['4','Employment and worker management',[['4a','Recruitment and selection (job ads, CV screening, evaluating candidates)'],['4b','Decisions on terms of work, promotion, termination or task allocation, or monitoring and evaluating performance']]],
+ ['5','Essential private and public services',[['5a','Eligibility for public assistance benefits and services'],['5b','Creditworthiness or credit scoring (except fraud detection)'],['5c','Risk assessment and pricing for life and health insurance'],['5d','Triage or dispatch of emergency calls and first response']]],
+ ['6','Law enforcement',[['6a','Victim risk, polygraphs, evidence reliability, offending risk or profiling for law enforcement']]],
+ ['7','Migration, asylum and border control',[['7a','Risk assessment, application examination, or detection and identification of persons']]],
+ ['8','Justice and democratic processes',[['8a','Assisting judicial authorities to research, interpret or apply the law'],['8b','Influencing the outcome of elections or referenda, or voting behaviour']]]
+];
+const DEROG = [['d1','Performs a narrow procedural task'],['d2','Improves the result of a previously completed human activity'],['d3','Detects decision-making patterns or deviations without replacing or influencing a human assessment made without proper human review'],['d4','Performs a preparatory task for an assessment relevant to an Annex III use case']];
+const TRANSP = [
+ ['T1','Interacts directly with people (chatbot, voice or virtual assistant)','Provider: design the system so people are told they are interacting with AI, unless that is obvious (Art. 50(1))'],
+ ['T2','Generates synthetic audio, image, video or text','Provider: machine-readable marking and detectability of output (Art. 50(2))'],
+ ['T3','Performs emotion recognition or biometric categorisation','Deployer: inform the people exposed (Art. 50(3))'],
+ ['T4','Generates or manipulates deepfake image, audio or video content','Deployer: disclose that the content is artificially generated or manipulated (Art. 50(4))'],
+ ['T5','Generates or manipulates text published to inform the public on matters of public interest','Deployer: disclose that it is AI-generated, unless it has had human editorial review and someone holds editorial responsibility (Art. 50(4))']
+];
+const ROLES = {provider:'Provider (develops it, or places it on the market under our name)', deployer:'Deployer (uses it under our authority)', importer:'Importer', distributor:'Distributor'};
+
+// id, area, title, article, question, cond, deadline, evidence, owner
+const CTL = [
+ ['GOV-01','Governance & AI literacy','AI system inventory and risk classification','Art. 6, 49','Is there a maintained inventory of all AI systems, each with a documented role (provider or deployer) and risk-tier classification?','all','AUG26','AI register with classification rationale','AI Governance Lead'],
+ ['GOV-02','Governance & AI literacy','AI Act accountability and governance','Good practice','Is there a named accountable owner, an AI policy and a cross-functional process (legal, risk, security, product) for AI Act compliance?','all','AUG26','AI policy, RACI, committee minutes','CRO / General Counsel'],
+ ['GOV-03','Governance & AI literacy','AI literacy measures','Art. 4','Do you take measures to support AI literacy among staff and others who operate or use AI on your behalf, matched to their role and the context?','all','FEB25','Training programme, role matrix, completion records','HR / L&D'],
+ ['GOV-04','Governance & AI literacy','Cooperation with authorities and information accuracy','Art. 21, 99(5)','Can you provide complete and accurate information to authorities on request? Supplying incorrect information is itself fineable.','all','AUG26','Regulator-response procedure','Legal'],
+ ['PRO-01','Prohibited practices','Prohibited-practice screening','Art. 5','Is every AI system, new or changed, screened against all ten Article 5 prohibitions before it is deployed?','all','FEB25','Screening checklist and sign-off records','Legal / AI Governance'],
+ ['PRO-02','Prohibited practices','Withdraw prohibited systems','Art. 5','Have the systems flagged as prohibited been withdrawn, switched off or redesigned out of scope?','prohibited','PRO','Decommissioning or redesign records','System Owner'],
+ ['PRO-03','Prohibited practices','Safeguards against NCII and CSAM generation','Art. 5(1)(ba),(bb)','For generative systems, are there reasonable, proportionate and effective safeguards that stop the generation of non-consensual intimate imagery and CSAM?','gen','DEC26','Content-safety filters, red-team results','Trust & Safety'],
+ ['TR-01','Transparency (Art. 50)','"You are talking to AI" disclosure by design','Art. 50(1)','Are your interactive AI systems designed so that people are told they are interacting with AI, unless that is obvious?','p_T1','AUG26','UI disclosure screenshots, test cases','Product Owner'],
+ ['TR-02','Transparency (Art. 50)','Machine-readable marking of synthetic content','Art. 50(2)','Is AI-generated audio, image, video and text marked in a machine-readable, detectable format (e.g. watermarking, metadata, C2PA) that is robust and interoperable?','p_T2','TR2','Marking specification and detection tests','ML Engineering'],
+ ['TR-03','Transparency (Art. 50)','Notice for emotion recognition and biometric categorisation','Art. 50(3)','Are the people exposed to emotion recognition or biometric categorisation told about it, with personal data processed in line with the GDPR?','d_T3','AUG26','Notices, DPIA','DPO'],
+ ['TR-04','Transparency (Art. 50)','Deepfake disclosure','Art. 50(4)','Do you disclose that deepfake image, audio or video content is artificially generated or manipulated? Artistic or satirical works need only limited disclosure.','d_T4','AUG26','Labelling standard and samples','Marketing / Comms'],
+ ['TR-05','Transparency (Art. 50)','Disclosure of AI-generated public-interest text','Art. 50(4)','Is AI-generated text published to inform the public disclosed as AI-generated, unless it has had human editorial review and someone holds editorial responsibility?','d_T5','AUG26','Editorial policy, labels','Comms / Editorial'],
+ ['TR-06','Transparency (Art. 50)','Clear and accessible disclosure at first interaction','Art. 50(5)','Are disclosures clear, distinguishable and accessible (including for people with disabilities), and given at the latest at the first interaction or exposure?','anyT','AUG26','Accessibility review of disclosures','UX / Accessibility'],
+ ['HRP-01','High-risk: provider','Risk management system','Art. 9','Is there a continuous, documented risk management process across the lifecycle, covering foreseeable misuse and effects on vulnerable groups, with testing against defined metrics?','p_hr','HR','Risk management file, test reports','Product Risk Lead'],
+ ['HRP-02','High-risk: provider','Data and data governance','Art. 10','Are training, validation and test datasets governed for relevance, representativeness, errors, completeness and bias, with documented data-preparation choices?','p_hr','HR','Datasheets, bias examination records','Data Governance'],
+ ['HRP-03','High-risk: provider','Technical documentation (Annex IV)','Art. 11','Is Annex IV technical documentation drawn up before the system goes on the market, and kept up to date?','p_hr','HR','Annex IV technical file','Engineering Lead'],
+ ['HRP-04','High-risk: provider','Automatic event logging','Art. 12','Does the system automatically record events (logs) across its lifetime, enough to trace risks, support post-market monitoring and monitor operation?','p_hr','HR','Logging design and sample logs','Platform Owner'],
+ ['HRP-05','High-risk: provider','Transparency and instructions for use','Art. 13','Do deployers receive instructions for use that cover intended purpose, accuracy, limitations, human-oversight measures, logging and maintenance?','p_hr','HR','Instructions for use','Product Owner'],
+ ['HRP-06','High-risk: provider','Human oversight by design','Art. 14','Is the system designed so that people can understand it, monitor it, interpret its output, override it and stop it, with safeguards against automation bias? Biometric ID needs two-person verification.','p_hr','HR','Oversight design, HMI tests','Product / UX'],
+ ['HRP-07','High-risk: provider','Accuracy, robustness and cybersecurity','Art. 15','Are accuracy levels declared and tested, and is the system resilient to errors and to AI-specific attacks such as data poisoning, adversarial examples and model flaws?','p_hr','HR','Robustness and security test reports','Security Architect'],
+ ['HRP-08','High-risk: provider','Quality management system','Art. 17','Is there a documented QMS covering design, development, testing, data management, risk management, post-market monitoring, incident reporting and accountability?','p_hr','HR','QMS manual (proportionate for SMEs and small mid-caps)','Quality Lead'],
+ ['HRP-09','High-risk: provider','Retention of documentation and logs','Art. 18, 19','Are technical documentation, QMS records and the declaration kept for 10 years, and automatically generated logs for at least 6 months?','p_hr','HR','Retention schedule','Records Mgmt'],
+ ['HRP-10','High-risk: provider','Conformity assessment','Art. 43','Has the right conformity assessment (internal control or a notified body) been completed before the system goes on the market or into service?','p_hr','HR','Conformity assessment report or certificate','Compliance'],
+ ['HRP-11','High-risk: provider','EU declaration of conformity and CE marking','Art. 47, 48','Is there a signed EU declaration of conformity, and is CE marking applied?','p_hr','HR','Declaration of conformity, CE evidence','Compliance'],
+ ['HRP-12','High-risk: provider','Registration in the EU database','Art. 49','Is the system registered in the EU database before it goes on the market or into service?','p_hr','HR','EU database registration ID','Compliance'],
+ ['HRP-13','High-risk: provider','Post-market monitoring','Art. 72','Is there a post-market monitoring plan that actively collects and analyses performance data across the system\'s lifetime?','p_hr','HR','Post-market monitoring plan and reports','Product Risk Lead'],
+ ['HRP-14','High-risk: provider','Serious incident reporting','Art. 73','Can you report serious incidents to market surveillance authorities within the legal deadlines (no later than 15 days, and shorter for the gravest cases)?','hr_any_p','HR','Incident procedure, reporting templates','Incident Response'],
+ ['HRP-15','High-risk: provider','Corrective actions and duty to inform','Art. 20','Do you have a process to correct, withdraw, disable or recall a non-conforming system and to inform distributors, deployers and authorities?','p_hr','HR','Corrective-action procedure','Product Owner'],
+ ['HRP-16','High-risk: provider','Accessibility requirements','Art. 16(l)','Does the system meet the EU accessibility requirements (Directives 2016/2102 and 2019/882)?','p_hr','HR','Accessibility conformance report','UX / Accessibility'],
+ ['HRP-17','High-risk: provider','EU authorised representative','Art. 22','As a provider established outside the EU, have you appointed an EU authorised representative by written mandate?','p_hr_nonEU','HR','Mandate letter','Legal'],
+ ['HRD-01','High-risk: deployer','Use in line with the instructions for use','Art. 26(1)','Do you take technical and organisational measures to use each high-risk system in line with the provider\'s instructions for use?','d_hr','HR','Operating procedures','System Owner'],
+ ['HRD-02','High-risk: deployer','Competent human oversight','Art. 26(2)','Is human oversight assigned to people with the competence, training, authority and support they need, including the power to override or stop the system?','d_hr','HR','Oversight assignments, training records','Business Owner'],
+ ['HRD-03','High-risk: deployer','Input data relevance','Art. 26(4)','Where you control the input data, is it relevant and sufficiently representative for the intended purpose?','d_hr','HR','Input data checks','Data Owner'],
+ ['HRD-04','High-risk: deployer','Operational monitoring and risk escalation','Art. 26(5)','Do you monitor operation, suspend the system if it presents a risk, and inform the provider and authorities of risks and serious incidents without delay?','d_hr','HR','Monitoring runbook, escalation records','Operations'],
+ ['HRD-05','High-risk: deployer','Log retention (at least 6 months)','Art. 26(6)','Are the logs under your control kept for at least 6 months, or longer where other law requires?','d_hr','HR','Log retention configuration','Platform Owner'],
+ ['HRD-06','High-risk: deployer','Inform workers before workplace use','Art. 26(7)','Before using a high-risk system at work, do you inform the workers affected and their representatives?','d_hr','HR','Works-council or worker notices','HR'],
+ ['HRD-07','High-risk: deployer','Inform people subject to decisions','Art. 26(11)','Are people told when a high-risk system makes, or helps make, decisions about them?','d_hr','HR','Notices, privacy information','DPO / Product'],
+ ['HRD-08','High-risk: deployer','DPIA using provider information','Art. 26(9)','Where personal data is processed, is a GDPR DPIA carried out using the information the provider supplies?','d_hr','HR','DPIA','DPO'],
+ ['HRD-09','High-risk: deployer','Right to explanation','Art. 86','Can you give affected people a clear and meaningful explanation of the AI system\'s role in decisions that significantly affect them?','d_hr','HR','Explanation procedure, templates','Business Owner'],
+ ['HRD-10','High-risk: deployer','Fundamental rights impact assessment (FRIA)','Art. 27','Before first use, is a FRIA completed and notified to the market surveillance authority? This applies to public bodies, providers of public services, and credit-scoring or life and health insurance uses.','d_fria','HR','FRIA and notification','Legal / DPO'],
+ ['HRD-11','High-risk: deployer','Deployer registration (public authorities)','Art. 26(8), 49(3)','As a public authority deployer, have you registered your use of the system in the EU database?','d_pub','HR','EU database entry','Compliance'],
+ ['VC-01','Value chain','Becoming a provider (rebranding or substantial modification)','Art. 25','Do you check whether rebranding, substantially modifying, or changing the intended purpose of a system makes you its provider, with all the provider duties that follow?','chain_hr','HR','Change-assessment procedure','Legal / Procurement'],
+ ['VC-02','Value chain','Importer verification','Art. 23','Before placing a system on the market, do you verify the conformity assessment, technical documentation, CE marking, declaration and authorised representative?','imp_hr','HR','Importer checklist','Procurement'],
+ ['VC-03','Value chain','Distributor verification','Art. 24','Before making a system available, do you verify the CE marking, declaration of conformity and instructions for use?','dis_hr','HR','Distributor checklist','Procurement'],
+ ['VC-04','Value chain','AI supplier contracts','Art. 25(4)','Do contracts with suppliers of AI components and tools specify the information, capabilities and technical access you need to comply?','hr_any','HR','Contract clauses','Procurement / Legal'],
+ ['NHR-01','Annex III exemption','Documented "not high-risk" assessment','Art. 6(3)-(4), 49(2)','For each Annex III system you claim is not high-risk, is the assessment documented before it goes on the market, and is the system registered?','p_nhr','DEC27','Art. 6(4) assessment, registration','Compliance'],
+ ['GP-01','GPAI models','Technical documentation for the AI Office and downstream providers','Art. 53(1)(a)-(b)','Is model documentation (Annex XI) kept for the AI Office, and is information (Annex XII) given to downstream providers?','gpai','GPAI','Model documentation package','ML Engineering'],
+ ['GP-02','GPAI models','Copyright policy, including the text-and-data-mining opt-out','Art. 53(1)(c)','Is there a policy to comply with EU copyright law, including identifying and respecting rights reservations (TDM opt-outs)?','gpai','GPAI','Copyright policy, crawler opt-out handling','Legal'],
+ ['GP-03','GPAI models','Public summary of training content','Art. 53(1)(d)','Is a sufficiently detailed summary of training content published, using the AI Office template?','gpai','GPAI','Published training-data summary','Legal / ML'],
+ ['GP-04','GPAI models','Code of Practice or equivalent','Art. 56','Do you follow the GPAI Code of Practice, or can you show compliance by other adequate means?','gpai','GPAI','Code of Practice signature or gap analysis','Legal'],
+ ['GP-05','GPAI models','Authorised representative (non-EU GPAI provider)','Art. 54','As a GPAI provider established outside the EU, have you appointed an EU authorised representative?','gpai_nonEU','GPAI','Mandate letter','Legal'],
+ ['GPS-01','GPAI models','Notify the Commission of systemic risk','Art. 52','Was the Commission notified within 2 weeks of the model meeting the systemic-risk threshold (e.g. more than 10^25 FLOPs of training compute)?','gpai_sys','GPAI','Notification record','Legal'],
+ ['GPS-02','GPAI models','Model evaluation and adversarial testing','Art. 55(1)(a)','Are state-of-the-art model evaluations, including documented adversarial testing (red teaming), carried out?','gpai_sys','GPAI','Evaluation and red-team reports','AI Safety'],
+ ['GPS-03','GPAI models','Systemic risk assessment and mitigation','Art. 55(1)(b)','Are possible systemic risks at EU level assessed and mitigated, including their sources?','gpai_sys','GPAI','Systemic risk assessment','AI Safety'],
+ ['GPS-04','GPAI models','Serious incident tracking and reporting to the AI Office','Art. 55(1)(c)','Are serious incidents and corrective measures tracked, documented and reported to the AI Office without undue delay?','gpai_sys','GPAI','Incident log, reports','Incident Response'],
+ ['GPS-05','GPAI models','Cybersecurity of the model and its infrastructure','Art. 55(1)(d)','Is there adequate cybersecurity protection for the model and its physical infrastructure?','gpai_sys','GPAI','Security assessment','CISO'],
+ ['VOL-01','Voluntary','Voluntary code of conduct for non-high-risk AI','Art. 95','For minimal and limited-risk systems, do you voluntarily apply suitable high-risk-style requirements, such as oversight and documentation?','all','AUG26','Internal code of conduct','AI Governance Lead']
+].map(r=>({id:r[0],area:r[1],title:r[2],art:r[3],q:r[4],cond:r[5],dl:r[6],ev:r[7],owner:r[8],target:3}));
+const AREAS = [...new Set(CTL.map(c=>c.area))];
+
+const KEY='euaiact-scanner-v1';
+const blank = () => ({org:{name:'',size:'large'}, systems:[], scores:{}, notes:{}});
+let S = blank();
+try { const j=localStorage.getItem(KEY); if(j) S=Object.assign(blank(),JSON.parse(j)); } catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} };
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const colorFor=p=>p>=.9?(css('--color-success')||'#22c55e'):p>=.6?(css('--color-warning')||'#f59e0b'):(css('--color-error')||'#ef4444');
+const uid=()=>Math.random().toString(36).slice(2,9);
+const newSys=()=>({id:uid(),name:'',desc:'',role:'deployer',date:'',pro:{},a1:false,a3:{},der:{},profiling:false,t:{},gpai:'none'});
+
+// ---------- classification ----------
+function classify(s){
+  const why=[]; let tier, route=null, prDl=null;
+  const pro=PROHIB.filter(p=>s.pro[p[0]]);
+  const a3=[]; ANNEX3.forEach(a=>a[2].forEach(x=>{ if(s.a3[x[0]]) a3.push(a[1]+': '+x[1]); }));
+  const der=DEROG.filter(d=>s.der[d[0]]);
+  const tr=TRANSP.filter(t=>s.t[t[0]]);
+  if(pro.length){ tier='Prohibited'; prDl = pro.some(p=>p[2]==='FEB25')?'FEB25':'DEC26';
+    why.push('Matches the Article 5 prohibition(s): '+pro.map(p=>'('+p[0]+') '+p[1]).join('; ')+'.');
+    why.push(prDl==='FEB25'?'This ban has applied since 2 Feb 2025. Stop using the system or redesign it now.':'This ban applies from 2 Dec 2026.'); }
+  else if(s.a1){ tier='High'; route='I'; why.push('Safety component of a product (or itself a product) under Annex I harmonisation legislation that needs third-party conformity assessment, so high-risk under Art. 6(1). Applies from 2 Aug 2028.'); }
+  else if(a3.length){
+    if(s.profiling){ tier='High'; route='III'; why.push('Annex III use case ('+a3.join('; ')+') and it profiles natural persons, so it is always high-risk (Art. 6(3) last subparagraph). Applies from 2 Dec 2027.'); }
+    else if(der.length){ tier='NotHigh'; why.push('Annex III use case ('+a3.join('; ')+'), but an Art. 6(3) exemption is claimed: '+der.map(d=>d[1].toLowerCase()).join('; ')+'. You must document this assessment and register the system (Art. 6(4), 49(2)). Authorities can challenge the claim.'); }
+    else { tier='High'; route='III'; why.push('Annex III use case: '+a3.join('; ')+'. High-risk under Art. 6(2); applies from 2 Dec 2027.'); }
+  }
+  else tier = tr.length?'Limited':'Minimal';
+  if(tier==='Minimal') why.push('No prohibited practice, high-risk use case or transparency trigger was selected, so the system is minimal risk. Only AI literacy and voluntary codes apply.');
+  if(tr.length) why.push('Transparency duties (Art. 50) apply on top: '+tr.map(t=>t[2]).join(' · '));
+  if(s.gpai!=='none') why.push(s.gpai==='systemic'?'GPAI model with systemic risk: Art. 53 and 55 obligations.':'GPAI model provider: Art. 53 obligations.');
+  if(route && s.date && s.date < DL[route==='I'?'AUG28':'DEC27'][0]) why.push('Already on the market before the high-risk deadline: the high-risk requirements apply only if it is significantly changed afterwards. AI used by public authorities must comply by 2 Aug 2030.');
+  if(tier==='High' && s.role==='deployer') why.push('As the deployer, you carry the Art. 26 duties (and Art. 27 FRIA where it applies). The provider carries Art. 8–22.');
+  return {tier,route,prDl,why,hasT:tr.length>0};
+}
+const TIERLBL={Prohibited:'Unacceptable risk · prohibited',High:'High risk',NotHigh:'Annex III · exemption claimed',Limited:'Limited risk · transparency',Minimal:'Minimal risk'};
+
+// ---------- applicability ----------
+function condOK(c,s,k){
+  const o=S.org, P=s.role==='provider', Dp=s.role==='deployer', H=k.tier==='High';
+  switch(c){
+    case 'all': return true;
+    case 'prohibited': return k.tier==='Prohibited';
+    case 'gen': return !!s.t.T2;
+    case 'p_T1': return P&&!!s.t.T1; case 'p_T2': return P&&!!s.t.T2;
+    case 'd_T3': return Dp&&!!s.t.T3; case 'd_T4': return Dp&&!!s.t.T4; case 'd_T5': return Dp&&!!s.t.T5;
+    case 'anyT': return (P&&(s.t.T1||s.t.T2))||(Dp&&(s.t.T3||s.t.T4||s.t.T5));
+    case 'p_hr': return P&&H; case 'hr_any_p': return P&&H;
+    case 'd_hr': return Dp&&H; case 'imp_hr': return s.role==='importer'&&H; case 'dis_hr': return s.role==='distributor'&&H;
+    case 'chain_hr': return !P&&H; case 'hr_any': return H;
+    case 'p_hr_nonEU': return P&&H&&!!o.nonEU;
+    case 'd_fria': return Dp&&H&&(!!o.public||!!o.pubsvc||!!s.a3['5b']||!!s.a3['5c']);
+    case 'd_pub': return Dp&&H&&!!o.public;
+    case 'p_nhr': return P&&k.tier==='NotHigh';
+    case 'gpai': return s.gpai!=='none'; case 'gpai_sys': return s.gpai==='systemic';
+    case 'gpai_nonEU': return s.gpai!=='none'&&!!o.nonEU;
+  } return false;
+}
+function sysDl(c,s,k){
+  if(c.dl==='HR') return k.route==='I'?'AUG28':'DEC27';
+  if(c.dl==='TR2') return (s.date && s.date<'2026-08-02')?'DEC26':'AUG26';
+  if(c.dl==='GPAI') return (s.date && s.date<'2025-08-02')?'AUG27':'AUG25';
+  if(c.dl==='PRO') return k.prDl||'FEB25';
+  return c.dl;
+}
+function applicable(){
+  const out=[]; const cls=S.systems.map(s=>[s,classify(s)]);
+  CTL.forEach(c=>{
+    let trig=[], dl=null;
+    if(c.cond==='all'){ trig=['Organisation-wide']; dl=c.dl; }
+    else cls.forEach(([s,k])=>{ if(condOK(c.cond,s,k)){ trig.push(s.name||'Unnamed system'); const d=sysDl(c,s,k); if(!dl||DL[d][0]<DL[dl][0]) dl=d; } });
+    if(trig.length) out.push(Object.assign({},c,{trig,dlk:dl}));
+  });
+  return out;
+}
+function status(c){ const v=S.scores[c.id]; if(v===undefined) return 'Unassessed'; if(v==='NA') return 'NA'; return v>=c.target?'Aligned':v>=c.target-1?'Partial':'Gap'; }
+const slabel=s=>({Unassessed:'Not assessed',NA:'N/A'}[s]||s);
+function readiness(list){ let a=0,t=0; list.forEach(c=>{ const v=S.scores[c.id]; if(v==='NA') return; t+=c.target; if(v!==undefined) a+=Math.min(v,c.target); }); return t?a/t:0; }
+
+// ---------- org view ----------
+function renderOrg(){
+  $('#o-name').value=S.org.name||''; $('#o-size').value=S.org.size||'large';
+  document.querySelectorAll('[data-o]').forEach(i=>{ i.checked=!!S.org[i.dataset.o]; });
+  const o=S.org, inScope=o.s_market||o.s_deploy||o.s_output, excl=o.x_mil||o.x_rnd;
+  $('#scope-msg').innerHTML = !inScope&&!excl ? '<div class="callout" style="margin-top:12px">Tick at least one scope condition. If none applies, the AI Act is probably not relevant to you.</div>'
+    : excl ? '<div class="callout warn" style="margin-top:12px">An Article 2 exclusion may apply to some or all of your AI. Assess only the systems outside the exclusion.</div>'
+    : '<div class="callout" style="margin-top:12px">The AI Act is likely to apply. Add each AI system in step 2 to determine its risk tier.</div>';
+}
+document.querySelectorAll('[data-o]').forEach(i=>i.onchange=()=>{ S.org[i.dataset.o]=i.checked; save(); renderOrg(); prog(); });
+$('#o-name').oninput=e=>{S.org.name=e.target.value;save();}; $('#o-size').onchange=e=>{S.org.size=e.target.value;save();};
+
+// ---------- systems view ----------
+function chk(group,id,label,sub,checked){ return `<label class="chk"><input type="checkbox" data-g="${group}" data-k="${id}" ${checked?'checked':''}><span>${esc(label)}${sub?`<small>${esc(sub)}</small>`:''}</span></label>`; }
+function renderSystems(openId){
+  const host=$('#systems');
+  if(!S.systems.length){ host.innerHTML='<div class="card empty">No AI systems yet. Click <b>+ Add AI system</b>, or load the illustrative sample on the Organisation tab.</div>'; prog(); return; }
+  host.innerHTML=S.systems.map(s=>{ const k=classify(s); return `
+  <details class="sys" data-id="${s.id}" ${s.id===openId?'open':''}>
+   <summary><span class="sname">${esc(s.name||'Unnamed system')}</span><span class="tier ${k.tier}">${TIERLBL[k.tier]}</span>${k.hasT&&k.tier!=='Limited'?'<span class="tier Limited">+ transparency</span>':''}${s.gpai!=='none'?`<span class="tier GPAI">${s.gpai==='systemic'?'GPAI · systemic risk':'GPAI model'}</span>`:''}<span class="muted small">${esc(ROLES[s.role].split(' (')[0])}</span><span class="sp"></span><span class="muted small">edit ▾</span></summary>
+   <div class="sys-body">
+    <div class="form" style="margin-top:12px">
+     <label>System name<input data-f="name" value="${esc(s.name)}" placeholder="e.g. CV screening tool"></label>
+     <label>Our role for this system<select data-f="role">${Object.entries(ROLES).map(([v,l])=>`<option value="${v}" ${s.role===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+     <label>First placed on the EU market or put into service (optional)<input type="date" data-f="date" value="${esc(s.date)}"></label>
+     <label>Purpose / description<input data-f="desc" value="${esc(s.desc)}" placeholder="What it does and for whom"></label>
+    </div>
+    <h3>A · Prohibited practices (Art. 5): does the system…</h3><div class="cols">${PROHIB.map(p=>chk('pro',p[0],p[1],p[2]==='DEC26'?'New ban, applies from 2 Dec 2026':'',s.pro[p[0]])).join('')}</div>
+    <h3>B · High risk via product safety (Art. 6(1), Annex I)</h3>
+    ${chk('a1','a1','It is a safety component of a product, or is itself a product, covered by Annex I EU legislation (machinery, medical devices, toys, lifts, radio equipment, vehicles…) that needs third-party conformity assessment','Since the Omnibus, AI used only for convenience, performance or efficiency is not a safety component unless its failure would endanger health and safety',s.a1)}
+    <h3>C · High risk via use case (Art. 6(2), Annex III): is it used for…</h3>
+    <div class="cols">${ANNEX3.map(a=>`<div><b class="small">${a[0]}. ${esc(a[1])}</b>${a[2].map(x=>chk('a3',x[0],x[1],'',s.a3[x[0]])).join('')}</div>`).join('')}</div>
+    <h3>D · Annex III exemption (Art. 6(3)): only relevant if you ticked something in C</h3>
+    ${chk('prof','profiling','The system profiles natural persons','If ticked, the exemption cannot apply and the system is always high-risk',s.profiling)}
+    <div class="cols">${DEROG.map(d=>chk('der',d[0],d[1],'',s.der[d[0]])).join('')}</div>
+    <h3>E · Transparency triggers (Art. 50): limited risk</h3><div class="cols">${TRANSP.map(t=>chk('t',t[0],t[1],t[2],s.t[t[0]])).join('')}</div>
+    <h3>F · General-purpose AI model</h3>
+    <div class="form"><label>Do you provide a GPAI model?<select data-f="gpai"><option value="none" ${s.gpai==='none'?'selected':''}>No. We build on or use others' models (we are not the model provider)</option><option value="gpai" ${s.gpai==='gpai'?'selected':''}>Yes. We develop and place a GPAI model on the market</option><option value="systemic" ${s.gpai==='systemic'?'selected':''}>Yes, with systemic risk (e.g. more than 10^25 FLOPs, or designated)</option></select></label></div>
+    <div class="why"><b>Result: ${TIERLBL[k.tier]}</b><br>${k.why.map(esc).join('<br>')}</div>
+    <div class="toolbar" style="margin-top:12px"><span class="sp"></span><button class="btn del" data-del="${s.id}">Remove system</button></div>
+   </div></details>`; }).join('');
+  host.querySelectorAll('details.sys').forEach(d=>{
+    const s=S.systems.find(x=>x.id===d.dataset.id);
+    d.querySelectorAll('[data-f]').forEach(i=>{ const ev=i.tagName==='SELECT'||i.type==='date'?'change':'input'; i.addEventListener(ev,()=>{ s[i.dataset.f]=i.value; save(); if(ev==='change') renderSystems(s.id); else { d.querySelector('.sname').textContent=s.name||'Unnamed system'; } }); });
+    d.querySelectorAll('[data-g]').forEach(i=>i.onchange=()=>{ const g=i.dataset.g,k=i.dataset.k;
+      if(g==='a1') s.a1=i.checked; else if(g==='prof') s.profiling=i.checked; else s[g][k]=i.checked; save(); renderSystems(s.id); });
+    d.querySelector('[data-del]').onclick=()=>{ if(confirm('Remove this AI system?')){ S.systems=S.systems.filter(x=>x.id!==s.id); save(); renderSystems(); } };
+  });
+  prog();
+}
+$('#add').onclick=()=>{ const s=newSys(); S.systems.push(s); save(); renderSystems(s.id); };
+
+// ---------- obligations view ----------
+function dlChip(k){ const [cls,t]=urg(k); return `<span class="chip ${cls}">${t}</span>`; }
+function renderObl(){
+  const A=applicable(), host=$('#obligations');
+  if(!S.systems.length){ host.innerHTML='<div class="card empty">Add and classify at least one AI system first. Organisation-wide duties are shown below.</div>'; }
+  else host.innerHTML='';
+  AREAS.forEach(area=>{
+    const list=A.filter(c=>c.area===area); if(!list.length) return;
+    const card=document.createElement('div'); card.className='card area';
+    card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><h2>${esc(area)}</h2><span class="muted small" data-as="${esc(area)}"></span></div>`+list.map(c=>`
+     <div class="ctl"><div><span class="cid">${c.id}</span><span class="cname">${esc(c.title)}</span> <span class="chip">${esc(c.art)}</span>
+      <div class="q">${esc(c.q)}</div>
+      <div class="chips">${dlChip(c.dlk)}${c.trig.slice(0,6).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}${c.trig.length>6?`<span class="chip">+${c.trig.length-6} more</span>`:''}</div></div>
+      <div class="seg" data-id="${c.id}">${[0,1,2,3,4,'NA'].map(v=>`<button data-v="${v}">${v==='NA'?'N/A':v}</button>`).join('')}</div>
+      <textarea class="note" data-id="${c.id}" placeholder="Evidence / notes (expected: ${esc(c.ev)})"></textarea></div>`).join('');
+    host.appendChild(card);
+  });
+  host.querySelectorAll('.seg').forEach(seg=>seg.onclick=e=>{ const b=e.target.closest('button'); if(!b) return; const id=seg.dataset.id, v=b.dataset.v==='NA'?'NA':+b.dataset.v; if(S.scores[id]===v) delete S.scores[id]; else S.scores[id]=v; save(); paintObl(); });
+  host.querySelectorAll('.note').forEach(t=>{ t.value=S.notes[t.dataset.id]||''; t.oninput=()=>{ S.notes[t.dataset.id]=t.value; save(); }; });
+  paintObl();
+}
+function paintObl(){
+  const A=applicable();
+  document.querySelectorAll('#obligations .seg').forEach(seg=>{ const v=S.scores[seg.dataset.id]; seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(v)===b.dataset.v)); });
+  document.querySelectorAll('[data-as]').forEach(el=>{ const l=A.filter(c=>c.area===el.dataset.as); el.textContent=`${l.filter(c=>S.scores[c.id]!==undefined).length}/${l.length} scored · ${Math.round(readiness(l)*100)}% ready`; });
+  prog();
+}
+function prog(){ const A=applicable(); $('#prog').textContent=`${S.systems.length} systems · ${A.length} obligations · ${Math.round(readiness(A)*100)}% ready`; }
+
+// ---------- results ----------
+function bars(rows){ return rows.map(([l,p])=>`<div class="bar-row"><span>${esc(l)}</span><div class="bar"><i style="width:${Math.round(p*100)}%;background:${colorFor(p)}"></i></div><span class="pct">${Math.round(p*100)}%</span></div>`).join(''); }
+function penalty(open){
+  const sm = S.org.size!=='large', lo = sm?' (for SMEs and small mid-caps, the lower of the two)':' (whichever is higher)';
+  if(open.some(c=>c.area==='Prohibited practices')) return ['€35m or 7%','of worldwide annual turnover'+lo+'. Prohibited-practice tier'];
+  if(open.length) return ['€15m or 3%','of worldwide annual turnover'+lo+'. Tier for most other obligations'];
+  return ['—','no open obligations identified'];
+}
+function renderResults(){
+  const A=applicable(), cls=S.systems.map(s=>[s,classify(s)]);
+  const cnt=t=>cls.filter(([,k])=>k.tier===t).length;
+  const open=A.filter(c=>!['Aligned','NA'].includes(status(c)));
+  const nowOpen=open.filter(c=>days(c.dlk)<=0), soonOpen=open.filter(c=>days(c.dlk)>0&&days(c.dlk)<=90);
+  const r=readiness(A), pen=penalty(open);
+  const verdict = !S.systems.length?'Add AI systems to begin': cnt('Prohibited')?'Critical: prohibited AI practice identified': nowOpen.length?'Non-compliant: obligations that already apply are open': soonOpen.length?'At risk: deadlines within 90 days are open': r>=.9?'On track against the current AI Act timeline':'Gaps remain ahead of future deadlines';
+  const vcol = cnt('Prohibited')||nowOpen.length ? (css('--color-error-dark')||'#dc2626') : soonOpen.length||r<.9 ? (css('--color-warning-dark')||'#d97706') : (css('--color-success-dark')||'#16a34a');
+  const dkeys=Object.keys(DL).filter(k=>A.some(c=>c.dlk===k));
+  let h=`<div class="card"><div class="kl">${esc(S.org.name||'Enterprise')} · assessed ${TODAY.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+   <div style="font-size:20px;font-weight:600;color:${vcol};margin:4px 0">${verdict}</div>
+   <div class="muted small">Readiness = achieved maturity ÷ target maturity (3) across the obligations that apply. Unscored obligations count as gaps.</div></div>
+  <div class="kpis">
+   <div class="kpi"><div class="kl">AI systems</div><div class="kv">${S.systems.length}</div></div>
+   <div class="kpi"><div class="kl">Prohibited</div><div class="kv" style="color:${css('--color-error-dark')||'#dc2626'}">${cnt('Prohibited')}</div></div>
+   <div class="kpi"><div class="kl">High risk</div><div class="kv">${cnt('High')}</div></div>
+   <div class="kpi"><div class="kl">Limited / exempt</div><div class="kv">${cnt('Limited')+cnt('NotHigh')}</div></div>
+   <div class="kpi"><div class="kl">Minimal</div><div class="kv">${cnt('Minimal')}</div></div>
+   <div class="kpi"><div class="kl">Readiness</div><div class="kv" style="color:${colorFor(r)}">${Math.round(r*100)}%</div></div>
+   <div class="kpi"><div class="kl">Open · applies now</div><div class="kv" style="color:${nowOpen.length?(css('--color-error-dark')||'#dc2626'):'inherit'}">${nowOpen.length}</div></div>
+   <div class="kpi"><div class="kl">Max fine exposure</div><div class="kv" style="font-size:18px">${pen[0]}</div><div class="muted small">${esc(pen[1])}</div></div>
+  </div>`;
+  if(cls.length) h+=`<div class="card"><h2>AI system risk classification</h2><table><thead><tr><th>System</th><th>Role</th><th>Risk tier</th><th>Why</th></tr></thead><tbody>${cls.map(([s,k])=>`<tr><td><b>${esc(s.name||'Unnamed system')}</b><div class="muted">${esc(s.desc)}</div></td><td>${esc(ROLES[s.role].split(' (')[0])}</td><td><span class="tier ${k.tier}">${TIERLBL[k.tier]}</span>${k.hasT&&k.tier!=='Limited'?'<div style="margin-top:4px"><span class="tier Limited">+ transparency</span></div>':''}${s.gpai!=='none'?`<div style="margin-top:4px"><span class="tier GPAI">${s.gpai==='systemic'?'GPAI · systemic':'GPAI'}</span></div>`:''}</td><td class="small">${k.why.map(esc).join('<br>')}</td></tr>`).join('')}</tbody></table></div>`;
+  h+=`<div class="grid2"><div class="card"><h2>Compliance deadlines that affect you</h2><div class="tl">${dkeys.map(k=>{ const l=A.filter(c=>c.dlk===k), o=l.filter(c=>!['Aligned','NA'].includes(status(c))).length, [cl,t]=urg(k);
+     return `<div class="tl-row ${days(k)<=0?'past':''}"><span class="tl-date">${fmtD(k)}</span><span>${esc(DL[k][1])}</span><span class="chip ${cl}" style="justify-self:start">${t}</span><span class="small"><b>${o}</b> open / ${l.length}</span></div>`; }).join('')}</div></div>
+   <div class="card"><h2>Readiness by obligation area</h2>${bars(AREAS.filter(a=>A.some(c=>c.area===a)).map(a=>[a,readiness(A.filter(c=>c.area===a))]))}</div></div>`;
+  h+=`<div class="card"><h2>Gap report: what is still needed, by deadline</h2><p class="muted small" style="margin-top:0">${open.length} of ${A.length} applicable obligations need work. Each must reach maturity 3 (Implemented) with evidence.</p>`;
+  dkeys.forEach(k=>{ const l=open.filter(c=>c.dlk===k); if(!l.length) return; const [cl,t]=urg(k);
+    h+=`<h3>${fmtD(k)} · ${esc(DL[k][1])} <span class="chip ${cl}">${t}</span></h3><table><thead><tr><th>ID</th><th>Obligation</th><th>Article</th><th>Now</th><th>Status</th><th>Triggered by</th><th>Owner</th><th>Evidence to produce</th></tr></thead><tbody>${
+      l.map(c=>{ const v=S.scores[c.id], st=status(c); return `<tr><td class="cid">${c.id}</td><td><b>${esc(c.title)}</b><div class="muted">${esc(c.q)}</div></td><td>${esc(c.art)}</td><td>${v===undefined?'–':v}</td><td><span class="st ${st}">${slabel(st)}</span></td><td class="small">${c.trig.map(esc).join(', ')}</td><td>${esc(c.owner)}</td><td>${esc(c.ev)}</td></tr>`; }).join('')}</tbody></table>`; });
+  if(!open.length) h+='<p class="muted">No open obligations.</p>';
+  h+='</div>';
+  $('#results').innerHTML=h;
+}
+
+// ---------- events ----------
+function go(v){ document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.v===v)); document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+  if(v==='org') renderOrg(); if(v==='sys') renderSystems(); if(v==='obl') renderObl(); if(v==='res') renderResults(); window.scrollTo(0,0); }
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.v));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+$('#reset').onclick=()=>{ if(confirm('Clear the organisation profile, systems and scores?')){ S=blank(); save(); renderOrg(); prog(); } };
+$('#demo').onclick=()=>{
+  if(S.systems.length && !confirm('Replace your current systems with the illustrative sample?')) return;
+  const mk=o=>Object.assign(newSys(),o);
+  S.org=Object.assign(S.org,{name:S.org.name||'Sample Bank plc (illustrative)',s_market:true,s_deploy:true,pubsvc:false});
+  S.systems=[
+   mk({name:'Customer service GenAI assistant',desc:'In-house chatbot on a third-party LLM API',role:'provider',date:'2025-11-01',t:{T1:true,T2:true}}),
+   mk({name:'Vendor CV screening and ranking',desc:'SaaS tool used by HR to shortlist applicants',role:'deployer',a3:{'4a':true},profiling:true}),
+   mk({name:'Retail credit scoring model',desc:'In-house model for loan decisions',role:'provider',a3:{'5b':true},profiling:true}),
+   mk({name:'Marketing image generator',desc:'Creates campaign visuals, incl. synthetic spokesperson video',role:'deployer',t:{T4:true}}),
+   mk({name:'Email spam filter',desc:'Commodity filtering',role:'deployer'}),
+   mk({name:'Call-centre agent emotion analytics (pilot)',desc:'Infers agent stress and emotion from voice',role:'deployer',pro:{f:true},t:{T3:true}})
+  ];
+  S.scores={'GOV-01':2,'GOV-02':1,'GOV-03':2,'PRO-01':1,'TR-01':3,'TR-02':1,'TR-04':0,'HRP-04':2,'HRP-06':1,'HRD-02':1,'HRD-05':3};
+  save(); renderOrg(); prog(); go('sys');
+};
+const dl=(n,t,ty)=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:ty})); a.download=n; document.body.appendChild(a); a.click(); a.remove(); };
+$('#csv').onclick=()=>{ const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=[['ID','Area','Obligation','Article','Question','Deadline','Deadline status','Current maturity','Target','Status','Triggered by','Owner','Evidence to produce','Notes']].concat(
+   applicable().map(c=>[c.id,c.area,c.title,c.art,c.q,DL[c.dlk][0],urg(c.dlk)[1],S.scores[c.id]??'',c.target,slabel(status(c)),c.trig.join('; '),c.owner,c.ev,S.notes[c.id]||'']));
+  const sys=[[],['AI system','Role','Risk tier','Rationale']].concat(S.systems.map(s=>{ const k=classify(s); return [s.name,ROLES[s.role],TIERLBL[k.tier],k.why.join(' ')]; }));
+  dl('EU_AI_Act_gap_report.csv',rows.concat(sys).map(r=>r.map(q).join(',')).join('\n'),'text/csv'); };
+$('#json').onclick=()=>dl('EU_AI_Act_assessment.json',JSON.stringify(Object.assign({tool:'eu-ai-act-compliance-scanner',version:1,date:new Date().toISOString()},S),null,2),'application/json');
+$('#load').onchange=e=>{ const f=e.target.files[0]; if(!f) return; f.text().then(t=>{ try{ const j=JSON.parse(t); S=Object.assign(blank(),{org:j.org||{},systems:j.systems||[],scores:j.scores||{},notes:j.notes||{}}); save(); renderOrg(); renderResults(); prog(); }catch(err){ alert('Invalid assessment file'); } }); };
+$('#print').onclick=()=>{ renderResults(); window.print(); };
+$('#today').textContent='Deadlines calculated from '+TODAY.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+renderOrg(); prog();
+</script>
+</body></html>
