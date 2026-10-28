@@ -1,0 +1,10 @@
+apiVersion: v2
+name: agent-honeypot
+description: Deception controls for AI agents on Kubernetes - planted decoys, decoy network services, Tetragon (eBPF) file watches, tamper-evident evidence and a pod kill switch
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.25.0-0"
+keywords: [ai-security, ai-agents, honeypot, honeytoken, deception, tetragon, ebpf, eks]
+maintainers:
+  - name: Ashish Srivastava

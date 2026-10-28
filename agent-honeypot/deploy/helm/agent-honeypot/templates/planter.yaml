@@ -1,0 +1,48 @@
+{{- $fn := include "ahp.fullname" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $fn }}-plant
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: planter
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "ahp.selector" . | nindent 8 }}
+        app.kubernetes.io/component: planter
+    spec:
+      {{- include "ahp.planterPodSpec" (dict "root" . "rotate" .Values.planter.rotate) | nindent 6 }}
+{{- if .Values.planter.rotationSchedule }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $fn }}-rotate
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: planter
+spec:
+  schedule: {{ .Values.planter.rotationSchedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            {{- include "ahp.selector" . | nindent 12 }}
+            app.kubernetes.io/component: planter
+        spec:
+          {{- include "ahp.planterPodSpec" (dict "root" . "rotate" true) | nindent 10 }}
+{{- end }}

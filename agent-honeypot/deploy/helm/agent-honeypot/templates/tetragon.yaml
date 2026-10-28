@@ -1,0 +1,140 @@
+{{- if .Values.tetragon.enabled }}
+{{- $fn := include "ahp.fullname" . -}}
+{{- $mount := trimSuffix "/" .Values.agentWorkspaceMountPath -}}
+{{- $enforced := list -}}
+{{- $observed := list -}}
+{{- range .Values.honeypots }}
+{{- if has .kind $.Values.tetragon.watchKinds }}
+{{- $p := printf "%s/%s" $mount (trimPrefix "/" .path) }}
+{{- if and $.Values.tetragon.enforce .enforce }}
+{{- $enforced = append $enforced $p }}
+{{- else }}
+{{- $observed = append $observed $p }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if or $enforced $observed }}
+# eBPF file watches on decoy paths inside agent pods only.
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicyNamespaced
+metadata:
+  name: {{ $fn }}-decoys
+  namespace: {{ .Values.agentNamespace }}
+spec:
+  podSelector:
+    matchExpressions:
+      - key: {{ .Values.agentLabelKey }}
+        operator: Exists
+  kprobes:
+{{- range $call := list "security_file_permission" "security_mmap_file" }}
+    - call: {{ $call }}
+      syscall: false
+      args:
+        - index: 0
+          type: file
+{{- if eq $call "security_file_permission" }}
+        - index: 1
+          type: int
+{{- else }}
+        - index: 1
+          type: uint32
+        - index: 2
+          type: nop
+{{- end }}
+      selectors:
+{{- if $enforced }}
+        - matchArgs:
+            - index: 0
+              operator: Prefix
+              values:
+                {{- toYaml $enforced | nindent 16 }}
+          matchActions:
+            - action: Sigkill
+{{- end }}
+{{- if $observed }}
+        - matchArgs:
+            - index: 0
+              operator: Prefix
+              values:
+                {{- toYaml $observed | nindent 16 }}
+{{- if $.Values.tetragon.rateLimit }}
+          matchActions:
+            - action: Post
+              rateLimit: {{ $.Values.tetragon.rateLimit | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .Values.tetragon.bridge.enabled }}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ $fn }}-tetragon-bridge
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tetragon-bridge
+spec:
+  selector:
+    matchLabels:
+      {{- include "ahp.selector" . | nindent 6 }}
+      app.kubernetes.io/component: tetragon-bridge
+  template:
+    metadata:
+      labels:
+        {{- include "ahp.selector" . | nindent 8 }}
+        app.kubernetes.io/component: tetragon-bridge
+    spec:
+      serviceAccountName: {{ $fn }}-tetragon-bridge
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        {{- include "ahp.prepareStateInit" . | nindent 8 }}
+      containers:
+        - name: bridge
+          image: {{ include "ahp.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - tetragon-bridge
+            - --events
+            - {{ printf "/tetragon/%s" (base .Values.tetragon.bridge.exportPath) | quote }}
+            - --workspace-mount
+            - {{ $mount | quote }}
+            - --policy
+            - {{ printf "%s-decoys" $fn | quote }}
+            - --label-key
+            - {{ .Values.agentLabelKey | quote }}
+            - --dedupe-seconds
+            - {{ .Values.tetragon.bridge.dedupeSeconds | quote }}
+          env:
+            {{- include "ahp.commonEnv" . | nindent 12 }}
+          securityContext:
+            {{- include "ahp.restrictedContainer" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.tetragon.bridge.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /state
+              subPath: state
+            - name: tetragon
+              mountPath: /tetragon
+              readOnly: true
+      volumes:
+        {{- include "ahp.dataVolume" . | nindent 8 }}
+        - name: tetragon
+          hostPath:
+            path: {{ dir .Values.tetragon.bridge.exportPath | quote }}
+            type: Directory
+      {{- with .Values.tetragon.bridge.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

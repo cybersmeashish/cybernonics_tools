@@ -1,0 +1,119 @@
+{{- if .Values.responder.enabled }}
+{{- $fn := include "ahp.fullname" . -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $fn }}-responder
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+---
+# Least privilege: pods in the agent namespace only.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $fn }}-responder
+  namespace: {{ .Values.agentNamespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $fn }}-responder
+  namespace: {{ .Values.agentNamespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $fn }}-responder
+subjects:
+  - kind: ServiceAccount
+    name: {{ $fn }}-responder
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-responder
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: responder
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "ahp.selector" . | nindent 6 }}
+      app.kubernetes.io/component: responder
+  template:
+    metadata:
+      labels:
+        {{- include "ahp.selector" . | nindent 8 }}
+        app.kubernetes.io/component: responder
+    spec:
+      serviceAccountName: {{ $fn }}-responder
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        {{- include "ahp.prepareStateInit" . | nindent 8 }}
+      containers:
+        - name: responder
+          image: {{ include "ahp.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - k8s-responder
+            - --namespace
+            - {{ .Values.agentNamespace | quote }}
+            - --label-key
+            - {{ .Values.agentLabelKey | quote }}
+            - --quarantine-label
+            - {{ .Values.responder.quarantineLabelKey | quote }}
+            - --mode
+            - {{ .Values.responder.mode | quote }}
+            - --halt-actions
+            - {{ join "," .Values.responder.haltActions | quote }}
+            - --halt-min-severity
+            - {{ .Values.responder.haltMinSeverity | quote }}
+            - --poll
+            - {{ .Values.responder.pollSeconds | quote }}
+          env:
+            {{- include "ahp.commonEnv" . | nindent 12 }}
+          securityContext:
+            {{- include "ahp.restrictedContainer" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.responder.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /state
+              subPath: state
+      volumes:
+        {{- include "ahp.dataVolume" . | nindent 8 }}
+{{- if eq .Values.responder.mode "quarantine" }}
+---
+# Deny-all for quarantined agent pods. The responder also strips their other labels,
+# so allow-policies that select agents by app labels no longer apply to them.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fn }}-quarantine
+  namespace: {{ .Values.agentNamespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{ .Values.responder.quarantineLabelKey }}: "true"
+  policyTypes: ["Ingress", "Egress"]
+{{- end }}
+{{- end }}

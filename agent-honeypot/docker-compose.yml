@@ -1,0 +1,52 @@
+# Reference local deployment.
+#   docker compose run --rm planter     # plant decoys for agent-01
+#   docker compose up -d decoy          # start decoy network services
+#   docker compose run --rm ops report  # incrimination verdicts
+#
+# Your agent container should join the `agents` network and mount
+# `agent-workspace` - but must NEVER mount `honeypot-state`.
+services:
+  decoy:
+    build: .
+    command: ["serve", "--host", "0.0.0.0", "--port", "8080", "--config", "/config/honeypots.yaml"]
+    volumes:
+      - honeypot-state:/state
+      - ./config/honeypots.yaml:/config/honeypots.yaml:ro
+    networks:
+      agents:
+        aliases: [decoy.internal, legacy-payroll-db.internal, model-registry.internal]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+  planter:
+    build: .
+    profiles: ["tools"]
+    command: ["plant", "--config", "/config/honeypots.yaml", "--target", "/agent-workspace",
+              "--agent-id", "${AGENT_ID:-agent-01}"]
+    volumes:
+      - honeypot-state:/state
+      - agent-workspace:/agent-workspace
+      - ./config/honeypots.yaml:/config/honeypots.yaml:ro
+    network_mode: none
+
+  ops:
+    build: .
+    profiles: ["tools"]
+    volumes: [honeypot-state:/state]
+    network_mode: none
+
+  # example-agent:
+  #   image: your-agent:latest
+  #   volumes: [agent-workspace:/workspace]
+  #   networks: [agents]
+
+volumes:
+  honeypot-state:
+  agent-workspace:
+
+networks:
+  agents:
+    internal: true

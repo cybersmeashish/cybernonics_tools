@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-honeypot"
+version = "0.1.0"
+description = "Deployable honeypots (deception controls) that detect, attribute, incriminate and deter misbehaving AI agents"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Ashish Srivastava"}]
+keywords = ["ai-security", "honeypot", "honeytoken", "ai-agents", "insider-threat", "deception", "ai-control"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Security",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/cybersmeashish/cybernonics_tools/tree/main/agent-honeypot"
+Repository = "https://github.com/cybersmeashish/cybernonics_tools"
+Issues = "https://github.com/cybersmeashish/cybernonics_tools/issues"
+
+[project.optional-dependencies]
+yaml = ["PyYAML>=6"]
+dev = ["PyYAML>=6", "pytest>=7"]
+
+[project.scripts]
+agent-honeypot = "agent_honeypot.cli:main"
+
+[tool.setuptools]
+packages = ["agent_honeypot"]
+
+[tool.setuptools.package-data]
+agent_honeypot = ["data/*.yaml"]

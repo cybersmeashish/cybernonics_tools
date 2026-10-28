@@ -1,0 +1,70 @@
+# Example agent wired to agent-honeypot (efs storage mode, release name "agent-honeypot").
+# - the agent-id label attributes Tetragon events and lets the responder find the pod
+# - the workspace PVC holds the planted decoys
+# - tools run in a "tool-guard" sidecar that wraps them with AgentGuard; only it
+#   mounts the guard registry (salted hashes, read-only)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-01
+  namespace: ai-agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-01
+  template:
+    metadata:
+      labels:
+        app: agent-01
+        agent-honeypot/agent-id: agent-01
+    spec:
+      automountServiceAccountToken: false     # agents must not read the Kubernetes API
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: agent
+          image: your-registry/your-agent:latest
+          env:
+            - name: TOOLS_URL
+              value: http://127.0.0.1:9000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+        - name: tool-guard
+          image: your-registry/your-tool-executor:latest   # serves tools on :9000, wrapped by AgentGuard
+          env:
+            - name: AHP_AGENT_ID
+              value: agent-01
+            - name: AHP_ALERTS_JSON
+              value: '[{"type":"json_stdout"}]'
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: guard
+              mountPath: /guard
+              readOnly: true
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: agent-honeypot-ws-agent-01
+        - name: guard
+          persistentVolumeClaim:
+            claimName: agent-honeypot-guard
+            readOnly: true
+# In the tool-guard process:
+#   engine = HoneypotEngine.for_guard("/guard/guard-registry.json", "/tmp/ahp-evidence.jsonl")
+#   guard  = AgentGuard(engine, agent_id=os.environ["AHP_AGENT_ID"])
+#   TOOLS  = {name: guard.wrap(fn, name) for name, fn in RAW_TOOLS.items()}

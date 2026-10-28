@@ -1,0 +1,105 @@
+{{- $fn := include "ahp.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-decoy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: decoy
+spec:
+  replicas: {{ .Values.decoy.replicas }}
+  selector:
+    matchLabels:
+      {{- include "ahp.selector" . | nindent 6 }}
+      app.kubernetes.io/component: decoy
+  template:
+    metadata:
+      labels:
+        {{- include "ahp.selector" . | nindent 8 }}
+        app.kubernetes.io/component: decoy
+    spec:
+      serviceAccountName: {{ $fn }}-decoy
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        {{- include "ahp.prepareStateInit" . | nindent 8 }}
+      containers:
+        - name: decoy
+          image: {{ include "ahp.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["serve", "--host", "0.0.0.0", "--port", {{ .Values.decoy.containerPort | quote }}]
+          env:
+            {{- include "ahp.commonEnv" . | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.decoy.containerPort }}
+          # exec probes: TCP connect only (no HTTP request -> no alert) and not affected by NetworkPolicy
+          readinessProbe:
+            exec:
+              command: ["python", "-c", "import socket; socket.create_connection(('127.0.0.1', {{ .Values.decoy.containerPort }}), 2).close()"]
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["python", "-c", "import socket; socket.create_connection(('127.0.0.1', {{ .Values.decoy.containerPort }}), 2).close()"]
+            periodSeconds: 30
+          securityContext:
+            {{- include "ahp.restrictedContainer" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.decoy.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /state
+              subPath: state
+      volumes:
+        {{- include "ahp.dataVolume" . | nindent 8 }}
+      {{- with .Values.decoy.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.decoy.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.decoy.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fn }}-decoy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: decoy
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "ahp.selector" . | nindent 4 }}
+    app.kubernetes.io/component: decoy
+  ports:
+    - name: http
+      port: {{ .Values.decoy.servicePort }}
+      targetPort: http
+      protocol: TCP
+{{- $target := printf "%s-decoy.%s.svc.%s" $fn .Release.Namespace .Values.clusterDomain }}
+{{- range .Values.decoy.hostnames }}
+---
+# Decoy alias resolvable from the agent namespace (deliberately unlabelled).
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ . }}
+  namespace: {{ $.Values.agentNamespace }}
+spec:
+  type: ExternalName
+  externalName: {{ $target }}
+{{- end }}

@@ -1,0 +1,13 @@
+{{- include "ahp.validate" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ahp.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+data:
+  honeypots.json: |-
+    {{- dict "decoy_base_url" (include "ahp.decoyBaseUrl" .) "honeypots" .Values.honeypots | toJson | nindent 4 }}
+  plant.sh: |-
+    {{- .Files.Get "files/plant.sh" | nindent 4 }}

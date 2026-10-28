@@ -1,0 +1,91 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- $fn := include "ahp.fullname" . -}}
+# Decoys: reachable only from the agent namespace (+ optional peers); no egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fn }}-decoy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ahp.selector" . | nindent 6 }}
+      app.kubernetes.io/component: decoy
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.agentNamespace }}
+        {{- with .Values.networkPolicy.decoyIngressFrom }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.decoy.containerPort }}
+  {{- with .Values.networkPolicy.alertEgress }}
+  egress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+# Planter and Tetragon bridge: no network at all (plus optional alert egress for the bridge).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fn }}-planter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ahp.selector" . | nindent 6 }}
+      app.kubernetes.io/component: planter
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fn }}-tetragon-bridge
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ahp.selector" . | nindent 6 }}
+      app.kubernetes.io/component: tetragon-bridge
+  policyTypes: ["Ingress", "Egress"]
+  {{- with .Values.networkPolicy.alertEgress }}
+  egress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- if .Values.responder.enabled }}
+---
+# Responder: no ingress; egress only to the Kubernetes API (+ optional alert egress).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fn }}-responder
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ahp.selector" . | nindent 6 }}
+      app.kubernetes.io/component: responder
+  policyTypes: ["Ingress", "Egress"]
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 6443
+    {{- with .Values.networkPolicy.alertEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

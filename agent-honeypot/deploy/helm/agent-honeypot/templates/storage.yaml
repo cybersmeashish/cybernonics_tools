@@ -1,0 +1,139 @@
+{{- $fn := include "ahp.fullname" . -}}
+{{- $pv := include "ahp.pvPrefix" . -}}
+{{- if eq .Values.storage.type "efs" }}
+{{- $fs := .Values.storage.efs.fileSystemId }}
+# EFS root: registry, evidence, guard registry and all workspaces. Release namespace only.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $pv }}-data
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  capacity:
+    storage: {{ .Values.storage.size }}
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: {{ $fn }}-data
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{ $fs }}
+    volumeAttributes:
+      encryptInTransit: "true"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fn }}-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: ""
+  volumeName: {{ $pv }}-data
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}
+---
+# Guard registry (salted hashes only), read-only for agent pods.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $pv }}-guard
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: {{ .Values.agentNamespace }}
+    name: {{ $fn }}-guard
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{ $fs }}:/guard
+    readOnly: true
+    volumeAttributes:
+      encryptInTransit: "true"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fn }}-guard
+  namespace: {{ .Values.agentNamespace }}
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: ""
+  volumeName: {{ $pv }}-guard
+  resources:
+    requests:
+      storage: 1Gi
+{{- range .Values.agents }}
+---
+# Workspace for {{ .id }} only: this PV exposes nothing outside /workspaces/{{ .id }}.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $pv }}-ws-{{ .id }}
+  labels:
+    {{- include "ahp.labels" $ | nindent 4 }}
+spec:
+  capacity:
+    storage: {{ $.Values.storage.size }}
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  claimRef:
+    namespace: {{ $.Values.agentNamespace }}
+    name: {{ $fn }}-ws-{{ .id }}
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{ $fs }}:/workspaces/{{ .id }}
+    volumeAttributes:
+      encryptInTransit: "true"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fn }}-ws-{{ .id }}
+  namespace: {{ $.Values.agentNamespace }}
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: ""
+  volumeName: {{ $pv }}-ws-{{ .id }}
+  resources:
+    requests:
+      storage: {{ $.Values.storage.size }}
+{{- end }}
+{{- else }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fn }}-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ahp.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes: [{{ .Values.storage.pvc.accessMode | quote }}]
+  {{- if .Values.storage.pvc.storageClassName }}
+  storageClassName: {{ .Values.storage.pvc.storageClassName | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}
+{{- end }}

@@ -1,0 +1,19 @@
+image:
+  repository: ghcr.io/cybersmeashish/agent-honeypot
+  tag: "0.1.0"
+fullnameOverride: platform-legacy      # innocuous names
+agentNamespace: ai-agents
+agents:
+  - id: agent-01
+  - id: agent-02
+storage:
+  type: efs
+  efs:
+    fileSystemId: fs-0123456789abcdef0
+tetragon:
+  enabled: true
+  enforce: true            # SIGKILL on reads of decoys marked enforce: true (model weights)
+responder:
+  mode: quarantine
+networkPolicy:
+  enabled: true

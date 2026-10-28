@@ -1,0 +1,65 @@
+# Installed at the repository root by scripts/push-to-github.sh
+name: agent-honeypot ci
+on:
+  push:
+    paths: ["agent-honeypot/**", ".github/workflows/agent-honeypot-*.yml"]
+  pull_request:
+    paths: ["agent-honeypot/**", ".github/workflows/agent-honeypot-*.yml"]
+defaults:
+  run:
+    working-directory: agent-honeypot
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+      - run: python examples/demo_compromised_agent.py
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t agent-honeypot:ci .
+      - run: docker run --rm agent-honeypot:ci --help
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: fmt (run 'terraform fmt -recursive deploy/terraform' locally to fix)
+        run: terraform fmt -check -recursive -diff deploy/terraform
+        continue-on-error: true
+      - name: validate
+        working-directory: agent-honeypot/deploy/terraform/examples/complete
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+
+  helm:
+    runs-on: ubuntu-latest
+    env:
+      IMG: ghcr.io/example/agent-honeypot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: lint
+        run: helm lint deploy/helm/agent-honeypot --set image.repository=$IMG --set storage.efs.fileSystemId=fs-0123456789abcdef0
+      - name: render (EKS / EFS, enforcement on)
+        run: helm template t deploy/helm/agent-honeypot -n agent-honeypot -f deploy/helm/examples/values-eks.yaml --set image.repository=$IMG > /tmp/efs.yaml
+      - name: render (single namespace, RWX PVC, rotation)
+        run: helm template t deploy/helm/agent-honeypot -n ai-agents --set image.repository=$IMG --set storage.type=pvc --set storage.pvc.storageClassName=efs-sc --set agentNamespace=ai-agents --set planter.rotationSchedule="0 3 * * 0" > /tmp/pvc.yaml
+      - name: render (minimal, tetragon + responder off)
+        run: helm template t deploy/helm/agent-honeypot -n agent-honeypot --set image.repository=$IMG --set storage.efs.fileSystemId=fs-0123456789abcdef0 --set tetragon.enabled=false --set responder.enabled=false > /tmp/min.yaml
+      - name: kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          ./kubeconform -strict -summary -ignore-missing-schemas /tmp/efs.yaml /tmp/pvc.yaml /tmp/min.yaml

@@ -1,0 +1,34 @@
+{{- $fn := include "ahp.fullname" . -}}
+agent-honeypot {{ .Chart.AppVersion }} is installed in "{{ .Release.Namespace }}" and protects namespace "{{ .Values.agentNamespace }}".
+
+Decoy hosts (resolvable from {{ .Values.agentNamespace }}): {{ join ", " .Values.decoy.hostnames }}
+Decoy base URL baked into planted decoys: {{ include "ahp.decoyBaseUrl" . }}
+
+Wire each agent pod (example: deploy/helm/examples/agent-deployment.yaml):
+{{- range .Values.agents }}
+  {{ .id }}
+    pod label        {{ $.Values.agentLabelKey }}: {{ .id }}
+    runAsUser        {{ .uid | default 1000 }}
+{{- if eq $.Values.storage.type "efs" }}
+    workspace        PVC {{ $fn }}-ws-{{ .id }} mounted at {{ $.Values.agentWorkspaceMountPath }}
+    guard registry   PVC {{ $fn }}-guard (readOnly, tool-guard sidecar only)
+{{- else }}
+    workspace        PVC {{ $fn }}-data, subPath workspaces/{{ .id }}, mounted at {{ $.Values.agentWorkspaceMountPath }}
+    guard registry   PVC {{ $fn }}-data, subPath guard (readOnly, tool-guard sidecar only)
+{{- end }}
+{{- end }}
+
+Check planting:   kubectl -n {{ .Release.Namespace }} logs job/{{ $fn }}-plant
+Alerts:           kubectl -n {{ .Release.Namespace }} logs deploy/{{ $fn }}-decoy | grep AHP_ALERT
+{{- if and .Values.tetragon.enabled .Values.tetragon.bridge.enabled }}
+                  kubectl -n {{ .Release.Namespace }} logs ds/{{ $fn }}-tetragon-bridge | grep AHP_ALERT
+{{- end }}
+{{- if .Values.responder.enabled }}
+Kill switch:      kubectl -n {{ .Release.Namespace }} logs deploy/{{ $fn }}-responder | grep AHP_RESPONSE   (mode: {{ .Values.responder.mode }})
+{{- end }}
+Verdicts:         kubectl -n {{ .Release.Namespace }} exec deploy/{{ $fn }}-decoy -c decoy -- agent-honeypot --state /state report
+Evidence chain:   kubectl -n {{ .Release.Namespace }} exec deploy/{{ $fn }}-decoy -c decoy -- agent-honeypot --state /state verify
+
+Agents must not be able to read Kubernetes objects in their namespace (set
+automountServiceAccountToken: false on agent pods); object names and Helm
+annotations would otherwise reveal the controls.

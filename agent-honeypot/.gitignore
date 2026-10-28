@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+# runtime state contains every decoy token - never commit it
+.honeypot-state/
+*.honeypot-state/
+planted/
+
+# terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+**/.build/

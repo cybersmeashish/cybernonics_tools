@@ -1,0 +1,16 @@
+output "decoy_hostnames" { value = module.agent_honeypot.decoy_hostnames }
+output "decoy_base_url" { value = module.agent_honeypot.decoy_base_url }
+output "ecr_repository_url" { value = module.agent_honeypot.ecr_repository_url }
+output "cpu_architecture" { value = module.agent_honeypot.cpu_architecture }
+output "region" { value = module.agent_honeypot.region }
+output "ecs_cluster_arn" { value = module.agent_honeypot.ecs_cluster_arn }
+output "decoy_service_name" { value = module.agent_honeypot.decoy_service_name }
+output "planter_task_definition_arn" { value = module.agent_honeypot.planter_task_definition_arn }
+output "planter_security_group_id" { value = module.agent_honeypot.planter_security_group_id }
+output "private_subnet_ids" { value = module.agent_honeypot.private_subnet_ids }
+output "agents" { value = module.agent_honeypot.agents }
+output "guard_access_point_id" { value = module.agent_honeypot.guard_access_point_id }
+output "efs_file_system_id" { value = module.agent_honeypot.efs_file_system_id }
+output "evidence_bucket" { value = module.agent_honeypot.evidence_bucket }
+output "alerts_topic_arn" { value = module.agent_honeypot.alerts_topic_arn }
+output "agents_cluster_arn" { value = aws_ecs_cluster.agents.arn }
