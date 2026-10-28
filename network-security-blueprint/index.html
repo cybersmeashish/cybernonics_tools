@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Enterprise Network Security Blueprint &amp; Gap Analysis Tool</title>
+<meta name="description" content="Interactive enterprise network security blueprint: 6 reference architectures, 60-control gap assessment, risk-ranked roadmap, Cisco IOS hardening generator and NIST CSF 2.0 / CIS v8 / ISO 27001:2022 / NIST SP 800-53 / MITRE ATT&amp;CK cross-mapping. Runs fully client-side.">
+<meta property="og:title" content="Enterprise Network Security Blueprint">
+<meta property="og:description" content="Reference architectures, gap analysis and framework cross-mapping for enterprise network security — based on the NSA Network Infrastructure Security Guide.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 8 13v17c0 15 10 26 24 30 14-4 24-15 24-30V13z' fill='%239333ea'/%3E%3Cpath d='m22 32 7 7 13-14' stroke='white' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/styles.css">
+<script src="assets/js/theme.js"></script>
+</head>
+<body>
+<header class="hdr">
+  <div>
+    <div class="eyebrow">Enterprise Network Security Blueprint · v1.0</div>
+    <h1>Network Security Blueprint, Reference Architectures &amp; Gap Analysis</h1>
+    <div class="sub">Baseline: NSA Network Infrastructure Security Guide (U/OO/118623-22, v1.2, Oct 2023) + enterprise Zero Trust &amp; cloud extensions · cross-mapped to NIST CSF 2.0, CIS v8, ISO/IEC 27001:2022, NIST SP 800-53 r5 &amp; MITRE ATT&amp;CK</div>
+  </div>
+  <div class="hdr-r"><button class="btn noprint" id="themeBtn" type="button" aria-label="Toggle light/dark theme">◐ Theme</button><div class="hdr-kpi"><div class="kpi-l">Overall posture</div><div class="kpi-v" id="hdrScore">—</div><div class="kpi-s" id="hdrLevel">Not assessed</div></div></div>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-t="bp" class="on">1 · Blueprint</button>
+  <button data-t="ra">2 · Reference Architectures</button>
+  <button data-t="ga">3 · Gap Assessment</button>
+  <button data-t="rm">4 · Remediation Roadmap</button>
+  <button data-t="hb">5 · Hardening Baseline</button>
+  <button data-t="fm">6 · Framework Mapping</button>
+</nav>
+
+<!-- ============ BLUEPRINT ============ -->
+<section class="panel on" id="p-bp">
+  <div class="grid g2">
+    <div class="card">
+      <h2>Purpose &amp; scope</h2>
+      <p class="sub" style="margin-top:0">This blueprint defines the target-state security architecture for the enterprise network: perimeter, campus/branch, data center, hybrid cloud, remote access and OT. It turns the NSA guide's device-level best practices into enterprise controls you can measure, and it adds Zero Trust and cloud-native extensions the NSA guide leaves out of scope (the guide covers existing networks and says it may need to change as Zero Trust matures).</p>
+      <ul class="tight">
+        <li><b>In scope:</b> routers, switches, firewalls, VPN/ZTNA gateways, wireless, cloud network constructs, network management plane, OT network boundaries.</li>
+        <li><b>Out of scope:</b> endpoint hardening, application security and IAM governance, except where they act as network policy decision points.</li>
+        <li><b>Control sources:</b> NSA NISG §2–§10 (device and architecture), CNSSP 15 / NIST SP 800-52r2 (cryptography), OMB M-21-31 (log retention), enterprise extensions (ZT, cloud, OT).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Design principles</h2>
+      <ol class="tight" style="padding-left:18px;margin:0">
+        <li><b>Defense in depth, vendor diversity.</b> Use layered NGFWs from different vendors so one unpatched vulnerability can't defeat every layer (§2.1).</li>
+        <li><b>Deny by default, permit by exception.</b> Apply this at every boundary and log every deny (§2.4).</li>
+        <li><b>Segment by function and trust.</b> Users, servers, printers/IoT, voice and OT each go in their own zone (§2.2).</li>
+        <li><b>No backdoors.</b> Multi-homed devices only bridge networks of equal trust (§2.3).</li>
+        <li><b>Authenticate everything that connects.</b> Use 802.1X and certificates rather than MAC-based trust (§2.5).</li>
+        <li><b>Isolated, encrypted, centrally controlled management plane.</b> Use AAA, SSHv2 and SNMPv3 (§4, §7).</li>
+        <li><b>Assume breach.</b> Redundant, tamper-resistant logs, synchronized time and full visibility (§6).</li>
+        <li><b>Identity and context over location.</b> Move from broad VPN to ZTNA and microsegmentation (Ext).</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Layered defense model</h2>
+    <div class="layer"><b>L1 · Edge &amp; Perimeter</b><div class="sub">Border routers with uRPF and ingress/egress ACLs, DDoS scrubbing, dual-vendor NGFW with IPS, a DMZ for public services and outbound proxies, and VPN gateways locked down to IKE/ESP.</div><span class="pill tag">§2.1 §2.4 §2.6 §8.2</span></div>
+    <div class="layer"><b>L2 · Segmentation</b><div class="sub">VLANs/VRFs by function, internal firewalls between trust zones, east-west microsegmentation, and an OT IDMZ.</div><span class="pill tag">§2.2 §2.3 Ext</span></div>
+    <div class="layer"><b>L3 · Access Control</b><div class="sub">802.1X NAC with certificates, port security as a fallback, no DTP, native VLAN isolation, unused ports shut down, and ZTNA for remote users.</div><span class="pill tag">§2.5 §9</span></div>
+    <div class="layer"><b>L4 · Control Plane</b><div class="sub">Authenticated OSPF/EIGRP/BGP (HMAC-SHA-384/512, unique keys per neighbor), no RIP, no source routing, and proxy ARP disabled.</div><span class="pill tag">§8 §9.6</span></div>
+    <div class="layer"><b>L5 · Management Plane</b><div class="sub">OOB management network, management ACLs, centralized TACACS+/RADIUS (×2), least privilege, MFA, SSHv2, TLS 1.2+, SNMPv3 authPriv, and unnecessary services disabled.</div><span class="pill tag">§4 §5 §7</span></div>
+    <div class="layer"><b>L6 · Integrity &amp; Lifecycle</b><div class="sub">Image hash verification, configuration change control and drift detection, current vendor-supported OS/hardware, and EoL replacement.</div><span class="pill tag">§3</span></div>
+    <div class="layer"><b>L7 · Visibility &amp; Response</b><div class="sub">Syslog to ≥2 collectors and SIEM, NIDS/NDR and packet capture, authenticated NTP in UTC, login success/failure logging, and accounting records.</div><span class="pill tag">§2.1 §4.4 §6</span></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h2>Cryptographic baseline</h2>
+      <table>
+        <tr><th>Use</th><th>Minimum standard</th><th>Ref</th></tr>
+        <tr><td>IKE / IPsec</td><td>IKEv2, DH Group 16 (MODP-4096) or 20 (ECP-384), AES-256-GCM, SHA-384, PFS. Default policies disabled</td><td>§2.6</td></tr>
+        <tr><td>Asymmetric keys</td><td>RSA ≥ 3072 bits (4096 where 3072 is unsupported), ECC P-384</td><td>§7.2</td></tr>
+        <tr><td>Symmetric</td><td>256-bit keys (AES-256)</td><td>§7.2</td></tr>
+        <tr><td>SSH</td><td>v2 only, DH min 4096, CNSA algorithm suites</td><td>§7.11.1</td></tr>
+        <tr><td>HTTPS management</td><td>TLS 1.2+ only, restricted cipher suites</td><td>§7.3</td></tr>
+        <tr><td>SNMP</td><td>v3 authPriv (SHA + AES-256/128), no v1/v2c, no RW communities</td><td>§7.8</td></tr>
+        <tr><td>Password storage</td><td>Type 8 (PBKDF2-SHA-256). Type 6 AES for reversible secrets. Never Type 0/4/7</td><td>§5.4</td></tr>
+        <tr><td>Routing auth</td><td>HMAC-SHA-384/512 key chains, unique per neighbor</td><td>§8.3</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Governance &amp; KPIs</h2>
+      <table>
+        <tr><th>Metric</th><th>Target</th></tr>
+        <tr><td>Devices on vendor-supported OS / hardware</td><td class="mono">100% / 0 EoL</td></tr>
+        <tr><td>Critical network CVEs patched</td><td class="mono">≤ 14 days</td></tr>
+        <tr><td>Devices with config drift vs. golden baseline</td><td class="mono">0</td></tr>
+        <tr><td>Admin sessions via AAA + MFA</td><td class="mono">100%</td></tr>
+        <tr><td>Devices sending logs to ≥2 collectors</td><td class="mono">100%</td></tr>
+        <tr><td>Cleartext management protocols enabled</td><td class="mono">0</td></tr>
+        <tr><td>Access ports with 802.1X enforced</td><td class="mono">≥ 95%</td></tr>
+        <tr><td>Firewall rules reviewed (any/any = 0)</td><td class="mono">Quarterly</td></tr>
+        <tr><td>Gap-assessment posture score</td><td class="mono">≥ 80 (Managed)</td></tr>
+      </table>
+      <p class="muted" style="font-size:12px;margin:8px 0 0">The KPI targets are recommended enterprise defaults. They are not prescribed by the NSA guide.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REFERENCE ARCHITECTURES ============ -->
+<section class="panel" id="p-ra">
+  <div class="ra-list" id="raList"></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
+      <div><h2 id="raTitle"></h2><div class="sub" id="raDesc"></div></div>
+      <button class="btn pri noprint" id="raAssess">Assess against this architecture →</button>
+    </div>
+    <div id="raSvg" style="margin-top:14px"></div>
+    <div class="legend"><span><i class="lg-s"></i>Security control</span><span><i class="lg-n"></i>Network / transport</span><span><i class="lg-i"></i>Identity / policy</span><span><i class="lg-m"></i>Management &amp; monitoring</span><span><i class="lg-a"></i>Protected assets</span></div>
+  </div>
+  <div class="grid g3">
+    <div class="card"><h3>Design decisions</h3><ul class="tight" id="raDec"></ul></div>
+    <div class="card"><h3>Threats mitigated</h3><ul class="tight" id="raThr"></ul></div>
+    <div class="card"><h3>Mapped key controls</h3><div id="raCtl"></div></div>
+  </div>
+</section>
+
+<!-- ============ GAP ASSESSMENT ============ -->
+<section class="panel" id="p-ga">
+  <div class="note">Set the status of each control. <b>Implemented</b> = 100%, <b>Partial</b> = 50%, <b>Not implemented</b> = 0%. N/A controls are left out of the score. Scores are weighted by severity (Critical 4 · High 3 · Medium 2 · Low 1). Use the scope selector to assess against one reference architecture.</div>
+  <div class="toolbar noprint">
+    <input type="text" id="org" placeholder="Organisation / environment name" style="min-width:230px">
+    <label class="sub">Scope <select id="scope"></select></label>
+    <label class="sub">Filter <select id="flt"><option value="all">All controls</option><option value="gaps">Gaps only</option><option value="unset">Not assessed</option></select></label>
+    <button class="btn" id="bSample">Load sample</button>
+    <button class="btn" id="bCsv">Export CSV</button>
+    <button class="btn" id="bJson">Save JSON</button>
+    <label class="btn" style="margin:0">Load JSON<input type="file" id="fJson" accept=".json" style="display:none"></label>
+    <button class="btn" id="bPrint">Print report</button>
+    <button class="btn" id="bReset">Reset</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-l">Posture score</div><div class="v" id="kScore">—</div><div class="kpi-s" id="kLevel">—</div></div>
+    <div class="kpi"><div class="kpi-l">Assessed</div><div class="v" id="kDone">0%</div><div class="bar"><span id="kBar" style="width:0"></span></div></div>
+    <div class="kpi"><div class="kpi-l">Open gaps</div><div class="v" id="kGaps">0</div><div class="kpi-s" id="kGapsS">—</div></div>
+    <div class="kpi"><div class="kpi-l">Critical gaps</div><div class="v" id="kCrit" style="color:var(--color-error,#ef4444)">0</div><div class="kpi-s">Fix within 30 days</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="chart-box" style="height:340px"><canvas id="chRadar" role="img" aria-label="chRadar chart"></canvas></div></div>
+    <div class="card"><div class="chart-box" style="height:340px"><canvas id="chBar" role="img" aria-label="chBar chart"></canvas></div></div>
+  </div>
+  <div class="card" style="padding:6px 8px">
+    <table id="gaTbl"><thead><tr><th style="width:56px">ID</th><th>Control</th><th style="width:70px">Ref</th><th style="width:80px">Severity</th><th style="width:150px">Status</th><th style="width:22%">Evidence / notes</th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- ============ ROADMAP ============ -->
+<section class="panel" id="p-rm">
+  <div class="note">The roadmap is built automatically from open gaps (Not implemented or Partial) in the current scope. It is ranked by risk = severity weight × unimplemented fraction. Complete the assessment first.</div>
+  <div class="grid g3" id="rmCols"></div>
+  <div class="card">
+    <h2>Prioritized remediation register</h2>
+    <table id="rmTbl"><thead><tr><th>#</th><th>ID</th><th>Gap</th><th>Severity</th><th>Status</th><th>Remediation</th><th>ATT&amp;CK</th><th>Phase</th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- ============ HARDENING BASELINE ============ -->
+<section class="panel" id="p-hb">
+  <div class="note">This generates a <b>Cisco IOS / IOS-XE</b> hardening template from the NSA guide's sample commands. Replace every <code>&lt;PLACEHOLDER&gt;</code> and validate in a lab before production. Use the matching syntax for other vendors.</div>
+  <div class="toolbar noprint"><button class="btn" id="hAll">Select all</button><button class="btn" id="hGaps">Select gaps only</button><button class="btn" id="hNone">Clear</button><button class="btn pri" id="hCopy">Copy config</button><span class="muted" id="hMsg"></span></div>
+  <div class="grid g2">
+    <div class="card" id="hList" style="max-height:640px;overflow:auto"></div>
+    <div class="card"><h3>Generated baseline</h3><pre id="hOut"></pre></div>
+  </div>
+</section>
+
+<!-- ============ FRAMEWORK MAPPING ============ -->
+<section class="panel" id="p-fm">
+  <div class="note">Each blueprint control is mapped to <b>NIST CSF 2.0</b> subcategories, <b>CIS Controls v8</b> safeguards and <b>ISO/IEC 27001:2022 Annex A</b> controls, <b>NIST SP 800-53 Rev. 5</b> controls and <b>MITRE ATT&amp;CK</b> techniques. For ATT&amp;CK, a technique counts as "Covered" when the controls that mitigate or detect it are implemented. Coverage for each framework requirement comes from the Gap Assessment status of the controls mapped to it, weighted by severity, in the current scope. These mappings are indicative architect mappings, not official crosswalks. Validate them with your auditor or certification body before you use them as compliance evidence.</div>
+  <div class="toolbar noprint">
+    <label class="sub">Framework <select id="fmFw"><option value="CSF">NIST CSF 2.0</option><option value="CIS">CIS Controls v8</option><option value="ISO">ISO/IEC 27001:2022 Annex A</option><option value="N53">NIST SP 800-53 Rev. 5</option><option value="ATK">MITRE ATT&amp;CK (Enterprise + ICS)</option></select></label>
+    <label class="sub">View <select id="fmView"><option value="req">By framework requirement</option><option value="mx">Control → framework matrix</option></select></label>
+    <input type="text" id="fmQ" placeholder="Search ID, title or control…" style="min-width:220px">
+    <span class="muted" id="fmScope"></span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-l" id="fmK1l">Requirements mapped</div><div class="v" id="fmK1">0</div><div class="kpi-s" id="fmK1s">—</div></div>
+    <div class="kpi"><div class="kpi-l">Covered (≥95%)</div><div class="v" id="fmK2" style="color:var(--color-success-dark,#16a34a)">0</div><div class="kpi-s">Fully evidenced</div></div>
+    <div class="kpi"><div class="kpi-l">Partial</div><div class="v" id="fmK3" style="color:var(--color-warning-dark,#d97706)">0</div><div class="kpi-s">50–94% coverage</div></div>
+    <div class="kpi"><div class="kpi-l">Gaps</div><div class="v" id="fmK4" style="color:var(--color-error,#ef4444)">0</div><div class="kpi-s" id="fmK4s">&lt;50% coverage</div></div>
+  </div>
+  <div class="card"><div class="chart-box" style="height:320px"><canvas id="chFm" role="img" aria-label="chFm chart"></canvas></div></div>
+  <div class="card" style="padding:6px 8px"><table id="fmTbl"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<footer class="ftr">
+  <div><b>Enterprise Network Security Blueprint</b> · v1.1.0 · <a id="srcLink" href="https://github.com/" rel="noopener">Source on GitHub</a> · MIT License</div>
+  <div>Independent community project — not affiliated with, or endorsed by, NSA, NIST, CIS, ISO or MITRE. Device-level controls are derived from the public NSA <i>Network Infrastructure Security Guide</i> (U/OO/118623-22, v1.2, Oct 2023). Framework mappings are indicative, not official crosswalks. All assessment data stays in your browser (localStorage); nothing is transmitted.</div>
+</footer>
+
+<noscript><div class="note">This tool requires JavaScript.</div></noscript>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/frameworks.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

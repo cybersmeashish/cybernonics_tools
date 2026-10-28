@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Enterprise Network Security Blueprint &amp; Gap Analysis Tool</title>
+<meta name="description" content="Interactive enterprise network security blueprint: 6 reference architectures, 60-control gap assessment, risk-ranked roadmap, Cisco IOS hardening generator and NIST CSF 2.0 / CIS v8 / ISO 27001:2022 / NIST SP 800-53 / MITRE ATT&amp;CK cross-mapping. Runs fully client-side.">
+<meta property="og:title" content="Enterprise Network Security Blueprint">
+<meta property="og:description" content="Reference architectures, gap analysis and framework cross-mapping for enterprise network security — based on the NSA Network Infrastructure Security Guide.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 8 13v17c0 15 10 26 24 30 14-4 24-15 24-30V13z' fill='%239333ea'/%3E%3Cpath d='m22 32 7 7 13-14' stroke='white' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root,[data-theme=light]{color-scheme:light;
+--color-bg:#faf9fc;--color-bg-hover:#f3f4f6;--color-bg-secondary:#ffffff;--color-bg-tertiary:#f9fafb;
+--color-border:rgba(0,0,0,.12);--color-border-light:rgba(0,0,0,.06);--color-border-strong:#d1d5db;
+--color-code-bg:#f6f8fa;--color-code-border:#e1e4e8;--color-code-text:#24292e;
+--color-error:#ef4444;--color-error-bg:rgba(239,68,68,.1);--color-error-border:rgba(239,68,68,.3);--color-error-dark:#dc2626;
+--color-info:#3b82f6;--color-info-bg:rgba(59,130,246,.1);--color-info-border:rgba(59,130,246,.3);--color-info-text:#1e40af;
+--color-primary:#9333ea;--color-primary-bg:#f3e8ff;--color-primary-border:rgba(147,51,234,.3);
+--color-success:#22c55e;--color-success-bg:rgba(34,197,94,.1);--color-success-dark:#16a34a;
+--color-surface:#f9fafb;--color-surface-active:#e5e7eb;--color-surface-hover:#f3f4f6;
+--color-text:#1a1a1a;--color-text-muted:#8b919c;--color-text-on-primary:#ffffff;--color-text-secondary:#5e5e5e;
+--color-warning:#f59e0b;--color-warning-bg:rgba(245,158,11,.1);--color-warning-border:rgba(245,158,11,.3);--color-warning-dark:#d97706;--color-warning-text:#92400e;
+--font-mono:'SF Mono',Monaco,Menlo,Consolas,monospace;--font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+--radius-md:10px;--radius-pill:17px;--radius-sm:6px}
+[data-theme=dark]{color-scheme:dark;
+--color-bg:#0f1115;--color-bg-hover:#1b1f27;--color-bg-secondary:#161920;--color-bg-tertiary:#1b1f27;
+--color-border:rgba(255,255,255,.14);--color-border-light:rgba(255,255,255,.07);--color-border-strong:#3a3f4b;
+--color-code-bg:#11141a;--color-code-border:#2a2f3a;--color-code-text:#d6dae2;
+--color-error:#f87171;--color-error-bg:rgba(248,113,113,.14);--color-error-border:rgba(248,113,113,.35);--color-error-dark:#fca5a5;
+--color-info:#60a5fa;--color-info-bg:rgba(96,165,250,.14);--color-info-border:rgba(96,165,250,.35);--color-info-text:#bfdbfe;
+--color-primary:#b67cf8;--color-primary-bg:rgba(182,124,248,.16);--color-primary-border:rgba(182,124,248,.4);
+--color-success:#4ade80;--color-success-bg:rgba(74,222,128,.14);--color-success-dark:#86efac;
+--color-surface:#1b1f27;--color-surface-active:#2a2f3a;--color-surface-hover:#1f242d;
+--color-text:#e8e9ed;--color-text-muted:#8a909c;--color-text-on-primary:#0f1115;--color-text-secondary:#b4b8c2;
+--color-warning:#fbbf24;--color-warning-bg:rgba(251,191,36,.14);--color-warning-border:rgba(251,191,36,.35);--color-warning-dark:#fcd34d;--color-warning-text:#fde68a}
+.hdr-r{display:flex;gap:10px;align-items:flex-end}
+a{color:var(--color-primary)}
+.ftr{margin-top:28px;padding-top:14px;border-top:1px solid var(--color-border-light);font-size:12px;color:var(--color-text-secondary);display:grid;gap:4px}
+.chart-box{position:relative}
+
+*{box-sizing:border-box}
+body{margin:0;padding:20px 24px 40px;background:var(--color-bg,#faf9fc);color:var(--color-text,#1a1a1a);font-family:var(--font-sans,'Helvetica Neue',Arial,sans-serif);font-size:14px;line-height:1.5}
+h1{font-size:22px;margin:2px 0 4px;font-weight:650}
+h2{font-size:17px;margin:0 0 10px;font-weight:620}
+h3{font-size:14px;margin:0 0 6px;font-weight:620}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-primary,#9333ea);font-weight:600}
+.sub{color:var(--color-text-secondary,#5e5e5e);font-size:13px}
+.muted{color:var(--color-text-muted,#9ca3af)}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.hdr-kpi{background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border-light,rgba(0,0,0,.06));border-radius:var(--radius-md,10px);padding:10px 18px;min-width:170px;text-align:right}
+.kpi-l{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted,#9ca3af)}
+.kpi-v{font-size:28px;font-weight:650;font-family:var(--font-mono,monospace)}
+.kpi-s{font-size:12px;color:var(--color-text-secondary,#5e5e5e)}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--color-border,rgba(0,0,0,.12));margin-bottom:18px;flex-wrap:wrap;position:sticky;top:0;background:var(--color-bg,#faf9fc);z-index:5;padding-top:4px}
+nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;padding:9px 14px;font:inherit;font-weight:550;color:var(--color-text-secondary,#5e5e5e);cursor:pointer;transition:all .15s ease}
+nav.tabs button:hover{color:var(--color-text,#1a1a1a);background:var(--color-surface-hover,#f3f4f6)}
+nav.tabs button.on{color:var(--color-primary,#9333ea);border-bottom-color:var(--color-primary,#9333ea)}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border-light,rgba(0,0,0,.06));border-radius:var(--radius-md,10px);padding:16px 18px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.pill{display:inline-block;padding:1px 9px;border-radius:var(--radius-pill,17px);font-size:11px;font-weight:600;white-space:nowrap}
+.sev-Critical{background:var(--color-error-bg,rgba(239,68,68,.1));color:var(--color-error-dark,#dc2626)}
+.sev-High{background:var(--color-warning-bg,rgba(245,158,11,.1));color:var(--color-warning-text,#92400e)}
+.sev-Medium{background:var(--color-info-bg,rgba(59,130,246,.1));color:var(--color-info-text,#1e40af)}
+.sev-Low{background:var(--color-surface-active,#e5e7eb);color:var(--color-text-secondary,#5e5e5e)}
+.tag{background:var(--color-primary-bg,#f3e8ff);color:var(--color-primary,#9333ea)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--color-text-muted,#9ca3af);font-weight:550;padding:8px 10px;border-bottom:1px solid var(--color-border,rgba(0,0,0,.12));font-size:12px}
+td{padding:8px 10px;border-bottom:1px solid var(--color-border-light,rgba(0,0,0,.06));vertical-align:top}
+tr:hover td{background:var(--color-surface-hover,#f3f4f6)}
+code,.mono{font-family:var(--font-mono,monospace);font-size:12px}
+pre{background:var(--color-code-bg,#f6f8fa);border:1px solid var(--color-code-border,#e1e4e8);color:var(--color-code-text,#24292e);border-radius:var(--radius-sm,6px);padding:12px;overflow:auto;font-family:var(--font-mono,monospace);font-size:12px;line-height:1.45;margin:0;white-space:pre}
+.btn{background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border,rgba(0,0,0,.12));border-radius:var(--radius-sm,6px);padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--color-text,#1a1a1a);transition:all .15s ease}
+.btn:hover{background:var(--color-surface-hover,#f3f4f6)}
+.btn.pri{background:var(--color-primary,#9333ea);color:var(--color-text-on-primary,#fff);border-color:var(--color-primary,#9333ea)}
+.btn.pri:hover{opacity:.9}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+select,input[type=text]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--color-border,rgba(0,0,0,.12));border-radius:var(--radius-sm,6px);background:var(--color-bg-secondary,#fff);color:var(--color-text,#1a1a1a)}
+.ra-list{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ra-btn{border:1px solid var(--color-border,rgba(0,0,0,.12));background:var(--color-bg-secondary,#fff);border-radius:var(--radius-md,10px);padding:8px 12px;cursor:pointer;font:inherit;font-size:13px;text-align:left;color:var(--color-text,#1a1a1a);transition:all .15s ease}
+.ra-btn small{display:block;color:var(--color-text-muted,#9ca3af);font-size:11px}
+.ra-btn.on{border-color:var(--color-primary,#9333ea);background:var(--color-primary-bg,#f3e8ff)}
+svg .band{fill:var(--color-bg-tertiary,#f9fafb);stroke:var(--color-border-light,rgba(0,0,0,.06))}
+svg .tl{font-size:11px;font-weight:650;fill:var(--color-text-secondary,#5e5e5e);text-transform:uppercase;letter-spacing:.04em}
+svg .nt{font-size:11.5px;fill:var(--color-text,#1a1a1a)}
+svg .n-s{fill:var(--color-error-bg,rgba(239,68,68,.1));stroke:var(--color-error-border,rgba(239,68,68,.3))}
+svg .n-n{fill:var(--color-info-bg,rgba(59,130,246,.1));stroke:var(--color-info-border,rgba(59,130,246,.3))}
+svg .n-a{fill:var(--color-bg-secondary,#fff);stroke:var(--color-border-strong,#d1d5db)}
+svg .n-m{fill:var(--color-warning-bg,rgba(245,158,11,.1));stroke:var(--color-warning-border,rgba(245,158,11,.3))}
+svg .n-i{fill:var(--color-primary-bg,#f3e8ff);stroke:var(--color-primary-border,rgba(66,0,219,.3))}
+svg .arr{stroke:var(--color-text-muted,#9ca3af);stroke-width:1.5;fill:none}
+svg .arrh{fill:var(--color-text-muted,#9ca3af)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary,#5e5e5e);margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid}
+.lg-s{background:var(--color-error-bg,rgba(239,68,68,.1));border-color:var(--color-error-border,rgba(239,68,68,.3))!important}
+.lg-n{background:var(--color-info-bg,rgba(59,130,246,.1));border-color:var(--color-info-border,rgba(59,130,246,.3))!important}
+.lg-a{background:var(--color-bg-secondary,#fff);border-color:var(--color-border-strong,#d1d5db)!important}
+.lg-m{background:var(--color-warning-bg,rgba(245,158,11,.1));border-color:var(--color-warning-border,rgba(245,158,11,.3))!important}
+.lg-i{background:var(--color-primary-bg,#f3e8ff);border-color:var(--color-primary-border,rgba(66,0,219,.3))!important}
+ul.tight{margin:4px 0 0;padding-left:18px}ul.tight li{margin:3px 0}
+.dom-h td{background:var(--color-bg-tertiary,#f9fafb);font-weight:620;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary,#5e5e5e)}
+.st{min-width:132px}
+.st.s-impl{border-color:var(--color-success,#22c55e)}
+.st.s-partial{border-color:var(--color-warning,#f59e0b)}
+.st.s-none{border-color:var(--color-error,#ef4444)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--color-bg-secondary,#fff);border:1px solid var(--color-border-light,rgba(0,0,0,.06));border-radius:var(--radius-md,10px);padding:12px 14px}
+.kpi .v{font-size:24px;font-weight:650;font-family:var(--font-mono,monospace)}
+.bar{height:6px;border-radius:3px;background:var(--color-surface-active,#e5e7eb);overflow:hidden;margin-top:6px}
+.bar>span{display:block;height:100%;background:var(--color-primary,#9333ea)}
+.phase{border-top:3px solid var(--color-border,rgba(0,0,0,.12))}
+.phase.p1{border-top-color:var(--color-error,#ef4444)}.phase.p2{border-top-color:var(--color-warning,#f59e0b)}.phase.p3{border-top-color:var(--color-info,#3b82f6)}
+.ritem{padding:8px 0;border-bottom:1px solid var(--color-border-light,rgba(0,0,0,.06));font-size:13px}
+.ritem:last-child{border-bottom:none}
+.chk{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:13px}
+.note{font-size:12px;color:var(--color-text-secondary,#5e5e5e);background:var(--color-info-bg,rgba(59,130,246,.1));border:1px solid var(--color-info-border,rgba(59,130,246,.3));border-radius:var(--radius-sm,6px);padding:8px 12px;margin-bottom:12px}
+.layer{display:grid;grid-template-columns:150px 1fr 110px;gap:12px;padding:9px 0;border-bottom:1px solid var(--color-border-light,rgba(0,0,0,.06));align-items:start}
+.layer:last-child{border-bottom:none}
+.layer b{font-size:13px}
+.fw{margin-top:4px;font-size:11px;color:var(--color-text-muted,#9ca3af)}.fw b{color:var(--color-text-secondary,#5e5e5e);font-weight:600}
+.cov{display:inline-block;min-width:44px;text-align:right;font-family:var(--font-mono,monospace)}
+.ctag{display:inline-block;margin:1px 3px 1px 0;padding:0 6px;border-radius:4px;font-size:11px;font-family:var(--font-mono,monospace);background:var(--color-surface-active,#e5e7eb);color:var(--color-text-secondary,#5e5e5e)}
+.cs-Covered{background:var(--color-success-bg,rgba(34,197,94,.1));color:var(--color-success-dark,#16a34a)}.cs-Partial{background:var(--color-warning-bg,rgba(245,158,11,.1));color:var(--color-warning-text,#92400e)}.cs-Gap{background:var(--color-error-bg,rgba(239,68,68,.1));color:var(--color-error-dark,#dc2626)}.cs-NA{background:var(--color-surface-active,#e5e7eb);color:var(--color-text-secondary,#5e5e5e)}
+@media print{nav.tabs,.toolbar,.noprint{display:none!important}.panel{display:block!important;page-break-after:always}}
+@media (prefers-reduced-motion:no-preference){.fade{animation:fd .35s ease-out both}@keyframes fd{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+</style>
+<script>
+/* Apply saved / preferred theme before first paint */
+(function(){var t='light';try{t=localStorage.getItem('nsbp_theme')||((window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');}catch(e){}document.documentElement.setAttribute('data-theme',t);})();
+</script>
+</head>
+<body>
+<header class="hdr">
+  <div>
+    <div class="eyebrow">Enterprise Network Security Blueprint · v1.0</div>
+    <h1>Network Security Blueprint, Reference Architectures &amp; Gap Analysis</h1>
+    <div class="sub">Baseline: NSA Network Infrastructure Security Guide (U/OO/118623-22, v1.2, Oct 2023) + enterprise Zero Trust &amp; cloud extensions · cross-mapped to NIST CSF 2.0, CIS v8, ISO/IEC 27001:2022, NIST SP 800-53 r5 &amp; MITRE ATT&amp;CK</div>
+  </div>
+  <div class="hdr-r"><button class="btn noprint" id="themeBtn" type="button" aria-label="Toggle light/dark theme">◐ Theme</button><div class="hdr-kpi"><div class="kpi-l">Overall posture</div><div class="kpi-v" id="hdrScore">—</div><div class="kpi-s" id="hdrLevel">Not assessed</div></div></div>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-t="bp" class="on">1 · Blueprint</button>
+  <button data-t="ra">2 · Reference Architectures</button>
+  <button data-t="ga">3 · Gap Assessment</button>
+  <button data-t="rm">4 · Remediation Roadmap</button>
+  <button data-t="hb">5 · Hardening Baseline</button>
+  <button data-t="fm">6 · Framework Mapping</button>
+</nav>
+
+<!-- ============ BLUEPRINT ============ -->
+<section class="panel on" id="p-bp">
+  <div class="grid g2">
+    <div class="card">
+      <h2>Purpose &amp; scope</h2>
+      <p class="sub" style="margin-top:0">This blueprint defines the target-state security architecture for the enterprise network: perimeter, campus/branch, data center, hybrid cloud, remote access and OT. It turns the NSA guide's device-level best practices into enterprise controls you can measure, and it adds Zero Trust and cloud-native extensions the NSA guide leaves out of scope (the guide covers existing networks and says it may need to change as Zero Trust matures).</p>
+      <ul class="tight">
+        <li><b>In scope:</b> routers, switches, firewalls, VPN/ZTNA gateways, wireless, cloud network constructs, network management plane, OT network boundaries.</li>
+        <li><b>Out of scope:</b> endpoint hardening, application security and IAM governance, except where they act as network policy decision points.</li>
+        <li><b>Control sources:</b> NSA NISG §2–§10 (device and architecture), CNSSP 15 / NIST SP 800-52r2 (cryptography), OMB M-21-31 (log retention), enterprise extensions (ZT, cloud, OT).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Design principles</h2>
+      <ol class="tight" style="padding-left:18px;margin:0">
+        <li><b>Defense in depth, vendor diversity.</b> Use layered NGFWs from different vendors so one unpatched vulnerability can't defeat every layer (§2.1).</li>
+        <li><b>Deny by default, permit by exception.</b> Apply this at every boundary and log every deny (§2.4).</li>
+        <li><b>Segment by function and trust.</b> Users, servers, printers/IoT, voice and OT each go in their own zone (§2.2).</li>
+        <li><b>No backdoors.</b> Multi-homed devices only bridge networks of equal trust (§2.3).</li>
+        <li><b>Authenticate everything that connects.</b> Use 802.1X and certificates rather than MAC-based trust (§2.5).</li>
+        <li><b>Isolated, encrypted, centrally controlled management plane.</b> Use AAA, SSHv2 and SNMPv3 (§4, §7).</li>
+        <li><b>Assume breach.</b> Redundant, tamper-resistant logs, synchronized time and full visibility (§6).</li>
+        <li><b>Identity and context over location.</b> Move from broad VPN to ZTNA and microsegmentation (Ext).</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Layered defense model</h2>
+    <div class="layer"><b>L1 · Edge &amp; Perimeter</b><div class="sub">Border routers with uRPF and ingress/egress ACLs, DDoS scrubbing, dual-vendor NGFW with IPS, a DMZ for public services and outbound proxies, and VPN gateways locked down to IKE/ESP.</div><span class="pill tag">§2.1 §2.4 §2.6 §8.2</span></div>
+    <div class="layer"><b>L2 · Segmentation</b><div class="sub">VLANs/VRFs by function, internal firewalls between trust zones, east-west microsegmentation, and an OT IDMZ.</div><span class="pill tag">§2.2 §2.3 Ext</span></div>
+    <div class="layer"><b>L3 · Access Control</b><div class="sub">802.1X NAC with certificates, port security as a fallback, no DTP, native VLAN isolation, unused ports shut down, and ZTNA for remote users.</div><span class="pill tag">§2.5 §9</span></div>
+    <div class="layer"><b>L4 · Control Plane</b><div class="sub">Authenticated OSPF/EIGRP/BGP (HMAC-SHA-384/512, unique keys per neighbor), no RIP, no source routing, and proxy ARP disabled.</div><span class="pill tag">§8 §9.6</span></div>
+    <div class="layer"><b>L5 · Management Plane</b><div class="sub">OOB management network, management ACLs, centralized TACACS+/RADIUS (×2), least privilege, MFA, SSHv2, TLS 1.2+, SNMPv3 authPriv, and unnecessary services disabled.</div><span class="pill tag">§4 §5 §7</span></div>
+    <div class="layer"><b>L6 · Integrity &amp; Lifecycle</b><div class="sub">Image hash verification, configuration change control and drift detection, current vendor-supported OS/hardware, and EoL replacement.</div><span class="pill tag">§3</span></div>
+    <div class="layer"><b>L7 · Visibility &amp; Response</b><div class="sub">Syslog to ≥2 collectors and SIEM, NIDS/NDR and packet capture, authenticated NTP in UTC, login success/failure logging, and accounting records.</div><span class="pill tag">§2.1 §4.4 §6</span></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h2>Cryptographic baseline</h2>
+      <table>
+        <tr><th>Use</th><th>Minimum standard</th><th>Ref</th></tr>
+        <tr><td>IKE / IPsec</td><td>IKEv2, DH Group 16 (MODP-4096) or 20 (ECP-384), AES-256-GCM, SHA-384, PFS. Default policies disabled</td><td>§2.6</td></tr>
+        <tr><td>Asymmetric keys</td><td>RSA ≥ 3072 bits (4096 where 3072 is unsupported), ECC P-384</td><td>§7.2</td></tr>
+        <tr><td>Symmetric</td><td>256-bit keys (AES-256)</td><td>§7.2</td></tr>
+        <tr><td>SSH</td><td>v2 only, DH min 4096, CNSA algorithm suites</td><td>§7.11.1</td></tr>
+        <tr><td>HTTPS management</td><td>TLS 1.2+ only, restricted cipher suites</td><td>§7.3</td></tr>
+        <tr><td>SNMP</td><td>v3 authPriv (SHA + AES-256/128), no v1/v2c, no RW communities</td><td>§7.8</td></tr>
+        <tr><td>Password storage</td><td>Type 8 (PBKDF2-SHA-256). Type 6 AES for reversible secrets. Never Type 0/4/7</td><td>§5.4</td></tr>
+        <tr><td>Routing auth</td><td>HMAC-SHA-384/512 key chains, unique per neighbor</td><td>§8.3</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Governance &amp; KPIs</h2>
+      <table>
+        <tr><th>Metric</th><th>Target</th></tr>
+        <tr><td>Devices on vendor-supported OS / hardware</td><td class="mono">100% / 0 EoL</td></tr>
+        <tr><td>Critical network CVEs patched</td><td class="mono">≤ 14 days</td></tr>
+        <tr><td>Devices with config drift vs. golden baseline</td><td class="mono">0</td></tr>
+        <tr><td>Admin sessions via AAA + MFA</td><td class="mono">100%</td></tr>
+        <tr><td>Devices sending logs to ≥2 collectors</td><td class="mono">100%</td></tr>
+        <tr><td>Cleartext management protocols enabled</td><td class="mono">0</td></tr>
+        <tr><td>Access ports with 802.1X enforced</td><td class="mono">≥ 95%</td></tr>
+        <tr><td>Firewall rules reviewed (any/any = 0)</td><td class="mono">Quarterly</td></tr>
+        <tr><td>Gap-assessment posture score</td><td class="mono">≥ 80 (Managed)</td></tr>
+      </table>
+      <p class="muted" style="font-size:12px;margin:8px 0 0">The KPI targets are recommended enterprise defaults. They are not prescribed by the NSA guide.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REFERENCE ARCHITECTURES ============ -->
+<section class="panel" id="p-ra">
+  <div class="ra-list" id="raList"></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
+      <div><h2 id="raTitle"></h2><div class="sub" id="raDesc"></div></div>
+      <button class="btn pri noprint" id="raAssess">Assess against this architecture →</button>
+    </div>
+    <div id="raSvg" style="margin-top:14px"></div>
+    <div class="legend"><span><i class="lg-s"></i>Security control</span><span><i class="lg-n"></i>Network / transport</span><span><i class="lg-i"></i>Identity / policy</span><span><i class="lg-m"></i>Management &amp; monitoring</span><span><i class="lg-a"></i>Protected assets</span></div>
+  </div>
+  <div class="grid g3">
+    <div class="card"><h3>Design decisions</h3><ul class="tight" id="raDec"></ul></div>
+    <div class="card"><h3>Threats mitigated</h3><ul class="tight" id="raThr"></ul></div>
+    <div class="card"><h3>Mapped key controls</h3><div id="raCtl"></div></div>
+  </div>
+</section>
+
+<!-- ============ GAP ASSESSMENT ============ -->
+<section class="panel" id="p-ga">
+  <div class="note">Set the status of each control. <b>Implemented</b> = 100%, <b>Partial</b> = 50%, <b>Not implemented</b> = 0%. N/A controls are left out of the score. Scores are weighted by severity (Critical 4 · High 3 · Medium 2 · Low 1). Use the scope selector to assess against one reference architecture.</div>
+  <div class="toolbar noprint">
+    <input type="text" id="org" placeholder="Organisation / environment name" style="min-width:230px">
+    <label class="sub">Scope <select id="scope"></select></label>
+    <label class="sub">Filter <select id="flt"><option value="all">All controls</option><option value="gaps">Gaps only</option><option value="unset">Not assessed</option></select></label>
+    <button class="btn" id="bSample">Load sample</button>
+    <button class="btn" id="bCsv">Export CSV</button>
+    <button class="btn" id="bJson">Save JSON</button>
+    <label class="btn" style="margin:0">Load JSON<input type="file" id="fJson" accept=".json" style="display:none"></label>
+    <button class="btn" id="bPrint">Print report</button>
+    <button class="btn" id="bReset">Reset</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-l">Posture score</div><div class="v" id="kScore">—</div><div class="kpi-s" id="kLevel">—</div></div>
+    <div class="kpi"><div class="kpi-l">Assessed</div><div class="v" id="kDone">0%</div><div class="bar"><span id="kBar" style="width:0"></span></div></div>
+    <div class="kpi"><div class="kpi-l">Open gaps</div><div class="v" id="kGaps">0</div><div class="kpi-s" id="kGapsS">—</div></div>
+    <div class="kpi"><div class="kpi-l">Critical gaps</div><div class="v" id="kCrit" style="color:var(--color-error,#ef4444)">0</div><div class="kpi-s">Fix within 30 days</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="chart-box" style="height:340px"><canvas id="chRadar" role="img" aria-label="chRadar chart"></canvas></div></div>
+    <div class="card"><div class="chart-box" style="height:340px"><canvas id="chBar" role="img" aria-label="chBar chart"></canvas></div></div>
+  </div>
+  <div class="card" style="padding:6px 8px">
+    <table id="gaTbl"><thead><tr><th style="width:56px">ID</th><th>Control</th><th style="width:70px">Ref</th><th style="width:80px">Severity</th><th style="width:150px">Status</th><th style="width:22%">Evidence / notes</th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- ============ ROADMAP ============ -->
+<section class="panel" id="p-rm">
+  <div class="note">The roadmap is built automatically from open gaps (Not implemented or Partial) in the current scope. It is ranked by risk = severity weight × unimplemented fraction. Complete the assessment first.</div>
+  <div class="grid g3" id="rmCols"></div>
+  <div class="card">
+    <h2>Prioritized remediation register</h2>
+    <table id="rmTbl"><thead><tr><th>#</th><th>ID</th><th>Gap</th><th>Severity</th><th>Status</th><th>Remediation</th><th>ATT&amp;CK</th><th>Phase</th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- ============ HARDENING BASELINE ============ -->
+<section class="panel" id="p-hb">
+  <div class="note">This generates a <b>Cisco IOS / IOS-XE</b> hardening template from the NSA guide's sample commands. Replace every <code>&lt;PLACEHOLDER&gt;</code> and validate in a lab before production. Use the matching syntax for other vendors.</div>
+  <div class="toolbar noprint"><button class="btn" id="hAll">Select all</button><button class="btn" id="hGaps">Select gaps only</button><button class="btn" id="hNone">Clear</button><button class="btn pri" id="hCopy">Copy config</button><span class="muted" id="hMsg"></span></div>
+  <div class="grid g2">
+    <div class="card" id="hList" style="max-height:640px;overflow:auto"></div>
+    <div class="card"><h3>Generated baseline</h3><pre id="hOut"></pre></div>
+  </div>
+</section>
+
+<!-- ============ FRAMEWORK MAPPING ============ -->
+<section class="panel" id="p-fm">
+  <div class="note">Each blueprint control is mapped to <b>NIST CSF 2.0</b> subcategories, <b>CIS Controls v8</b> safeguards and <b>ISO/IEC 27001:2022 Annex A</b> controls, <b>NIST SP 800-53 Rev. 5</b> controls and <b>MITRE ATT&amp;CK</b> techniques. For ATT&amp;CK, a technique counts as "Covered" when the controls that mitigate or detect it are implemented. Coverage for each framework requirement comes from the Gap Assessment status of the controls mapped to it, weighted by severity, in the current scope. These mappings are indicative architect mappings, not official crosswalks. Validate them with your auditor or certification body before you use them as compliance evidence.</div>
+  <div class="toolbar noprint">
+    <label class="sub">Framework <select id="fmFw"><option value="CSF">NIST CSF 2.0</option><option value="CIS">CIS Controls v8</option><option value="ISO">ISO/IEC 27001:2022 Annex A</option><option value="N53">NIST SP 800-53 Rev. 5</option><option value="ATK">MITRE ATT&amp;CK (Enterprise + ICS)</option></select></label>
+    <label class="sub">View <select id="fmView"><option value="req">By framework requirement</option><option value="mx">Control → framework matrix</option></select></label>
+    <input type="text" id="fmQ" placeholder="Search ID, title or control…" style="min-width:220px">
+    <span class="muted" id="fmScope"></span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-l" id="fmK1l">Requirements mapped</div><div class="v" id="fmK1">0</div><div class="kpi-s" id="fmK1s">—</div></div>
+    <div class="kpi"><div class="kpi-l">Covered (≥95%)</div><div class="v" id="fmK2" style="color:var(--color-success-dark,#16a34a)">0</div><div class="kpi-s">Fully evidenced</div></div>
+    <div class="kpi"><div class="kpi-l">Partial</div><div class="v" id="fmK3" style="color:var(--color-warning-dark,#d97706)">0</div><div class="kpi-s">50–94% coverage</div></div>
+    <div class="kpi"><div class="kpi-l">Gaps</div><div class="v" id="fmK4" style="color:var(--color-error,#ef4444)">0</div><div class="kpi-s" id="fmK4s">&lt;50% coverage</div></div>
+  </div>
+  <div class="card"><div class="chart-box" style="height:320px"><canvas id="chFm" role="img" aria-label="chFm chart"></canvas></div></div>
+  <div class="card" style="padding:6px 8px"><table id="fmTbl"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<footer class="ftr">
+  <div><b>Enterprise Network Security Blueprint</b> · v1.1.0 · <a id="srcLink" href="https://github.com/" rel="noopener">Source on GitHub</a> · MIT License</div>
+  <div>Independent community project — not affiliated with, or endorsed by, NSA, NIST, CIS, ISO or MITRE. Device-level controls are derived from the public NSA <i>Network Infrastructure Security Guide</i> (U/OO/118623-22, v1.2, Oct 2023). Framework mappings are indicative, not official crosswalks. All assessment data stays in your browser (localStorage); nothing is transmitted.</div>
+</footer>
+
+<noscript><div class="note">This tool requires JavaScript.</div></noscript>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+/*! Enterprise Network Security Blueprint | MIT License | https://github.com/ */
+/* Control catalogue & reference architectures. Edit here to extend the tool.
+   Run `node scripts/validate.js` after changes. */
+/* ===================== DATA ===================== */
+const DOMAINS=[
+ {id:'ARC',name:'Architecture & Segmentation',ref:'§2'},
+ {id:'MNT',name:'Security Maintenance',ref:'§3'},
+ {id:'AAA',name:'Authentication, Authorization, Accounting',ref:'§4'},
+ {id:'PWD',name:'Local Accounts & Passwords',ref:'§5'},
+ {id:'LOG',name:'Logging & Monitoring',ref:'§6'},
+ {id:'MGT',name:'Remote Admin & Network Services',ref:'§7'},
+ {id:'RTE',name:'Routing',ref:'§8'},
+ {id:'PRT',name:'Interface Ports',ref:'§9'},
+ {id:'GOV',name:'Notice & Governance',ref:'§10'},
+ {id:'ZTC',name:'Zero Trust, Cloud & OT (Ext.)',ref:'Ext'}
+];
+const SEVW={Critical:4,High:3,Medium:2,Low:1};
+const ALL='*';
+function C(id,d,t,ref,sev,ras,fix,cmd){return {id,d,t,ref,sev,ras,fix,cmd:cmd||''};}
+const CONTROLS=[
+ C('A1','ARC','Layered next-generation firewalls at perimeter and internal trust boundaries, using different vendors per layer','2.1','High',['RA1','RA3','RA4'],'Deploy outer and inner NGFW tiers from different vendors. Inspect inter-zone traffic.'),
+ C('A2','ARC','Public-facing systems and outbound proxies placed in DMZ subnets between firewall layers','2.1','High',['RA1','RA4','RA6'],'Move internet-facing services and proxies into a DMZ. Block direct inbound access to internal zones.'),
+ C('A3','ARC','Network monitoring (NIDS/NDR, traffic inspection, full-packet capture) on ingress/egress and key internal links','2.1','High',ALL,'Deploy NIDS/NDR sensors at the perimeter and core. Retain PCAP for critical segments.'),
+ C('A4','ARC','Redundant, load-balanced security devices in core areas','2.1','Medium',['RA1','RA3','RA4'],'Deploy HA pairs or clusters for firewalls, core and VPN.'),
+ C('A5','ARC','Similar systems grouped and segmented (users, servers, printers/IoT, voice, OT) with ACLs restricting inter-segment ports/protocols','2.2','Critical',ALL,'Define a zone model. Enforce VLAN/VRF segmentation with inter-zone ACLs/firewalls. Isolate OT physically where possible.'),
+ C('A6','ARC','No backdoor connections. All interfaces of multi-homed devices are at similar security levels','2.3','Critical',ALL,'Audit multi-homed devices and border routers for direct links to internal/management subnets and remove them.'),
+ C('A7','ARC','Deny-by-default, permit-by-exception perimeter rulesets with logging on all deny/drop rules','2.4','Critical',['RA1','RA2','RA3','RA4','RA6'],'Rebuild rulesets on an explicit-permit basis. Add a final logged deny. Run quarterly rule recertification.','access-list <ACL#> permit <NETWORK> <WILDCARD_MASK> log\naccess-list <ACL#> deny any log'),
+ C('A8','ARC','IPS deployed to dynamically block exploitation attempts at the perimeter','2.4','Medium',['RA1','RA4'],'Enable IPS on perimeter NGFWs in blocking mode for high-confidence signatures.'),
+ C('A9','ARC','Network Access Control using 802.1X certificate-based device authentication','2.5','High',['RA2','RA3','RA6'],'Roll out 802.1X (EAP-TLS) with PKI-issued device certificates. Use MAB with profiling only for headless devices.'),
+ C('A10','ARC','VPN gateways restricted to UDP 500/4500 and ESP, filtered to known peers, with unnecessary features disabled and IPS in front','2.6','High',['RA1','RA4','RA5'],'Apply strict ingress filters on VPN gateways. Restrict site-to-site peers by IP. Put IPS in front of remote-access VPN.'),
+ C('A11','ARC','IKEv2/IPsec configured to CNSSP 15 (DH 16/20, AES-256-GCM, SHA-384, PFS) with default policies disabled','2.6','High',['RA1','RA4','RA5'],'Replace legacy IKE proposals and disable default ISAKMP/IKEv2/IPsec policies.','no crypto isakmp default policy\nno crypto ikev2 policy default\nno crypto ikev2 proposal default\nno crypto ipsec transform-set default\ncrypto ikev2 proposal <IKEV2_PROPOSAL_NAME>\n encryption aes-gcm-256\n group 20\ncrypto ikev2 policy <IKEV2_POLICY_NAME>\n proposal <IKEV2_PROPOSAL_NAME>\ncrypto ipsec transform-set <IPSEC_TRANSFORM_NAME> esp-gcm 256\n mode tunnel\ncrypto ipsec profile <IPSEC_PROFILE_NAME>\n set transform-set <IPSEC_TRANSFORM_NAME>\n set pfs group16\n set ikev2-profile <IKEV2_PROFILE_NAME>'),
+ C('M1','MNT','Integrity of OS images verified against vendor hashes before and after installation','3.1','High',ALL,'Make SHA-512 hash verification a mandatory step in the upgrade runbook. Apply NDI methodology for high-value devices.','! exec: verify /sha512 <PATH:filename>'),
+ C('M2','MNT','Configuration change control with secure backups and periodic drift comparison against approved baselines','3.1','High',ALL,'Implement NCM/config backup with diffing against golden configs. Require change tickets with authorization and justification.'),
+ C('M3','MNT','Running configs saved. Backups transferred via SCP/SFTP to a protected repository. Stale images and configs removed from flash','3.2','Medium',ALL,'Enforce SCP/SFTP for archive. Restrict repository access. Purge old images from device file systems.','! exec: copy running-config startup-config\n! exec: dir /recursive all-filesystems'),
+ C('M4','MNT','All devices on the latest stable vendor-supported OS with a defined patch SLA','3.3','Critical',ALL,'Establish a network patch cadence (critical ≤14 days). Track vendor PSIRT advisories and CISA KEV.'),
+ C('M5','MNT','End-of-life and unsupported hardware identified and replaced per plan','3.4','High',ALL,'Maintain a lifecycle register. Budget and execute replacement before EoS dates.'),
+ C('X1','AAA','At least two centralized AAA servers (TACACS+/RADIUS), each with a unique key and using encrypted transport where supported','4.1','High',ALL,'Deploy redundant AAA. Use unique per-server keys (server-private). Use RadSec/LDAPS/IPsec where supported.','aaa new-model\naaa group server tacacs+ <GROUP_NAME>\n server-private <IP_ADDRESS_1> key <KEY_1>\n server-private <IP_ADDRESS_2> key <KEY_2>'),
+ C('X2','AAA','Central authentication is primary for login and enable. Local accounts are fallback only. No "line" or "none" methods','4.2','High',ALL,'Apply default method lists group-first with local fallback.','aaa authentication login default group <GROUP_NAME> local\naaa authentication enable default group <GROUP_NAME> enable'),
+ C('X3','AAA','Authorization enforced for console, exec and commands at all privilege levels','4.3','Medium',ALL,'Enable command authorization for levels 1 and 15 and for config commands.','aaa authorization console\naaa authorization exec default group <GROUP_NAME> local\naaa authorization commands 1 default group <GROUP_NAME> local\naaa authorization commands 15 default group <GROUP_NAME> local\naaa authorization config-commands'),
+ C('X4','AAA','Start-stop accounting for exec sessions and commands, centrally reviewed','4.4','High',ALL,'Enable accounting and feed AAA logs to the SIEM with review use cases.','aaa accounting exec default start-stop group <GROUP_NAME>\naaa accounting commands 1 default start-stop group <GROUP_NAME>\naaa accounting commands 15 default start-stop group <GROUP_NAME>'),
+ C('X5','AAA','Least privilege: accounts and lines default to privilege 1 with explicit elevation, reviewed periodically','4.5','Medium',ALL,'Set privilege 1 on accounts and lines. Run quarterly privilege review on AAA servers.','username <USER_NAME> privilege 1\nline con 0\n privilege level 1\nline vty 0 4\n privilege level 1\nline vty 5 15\n privilege level 1'),
+ C('X6','AAA','Failed authentication attempts limited to 3 or fewer, with a login delay','4.6','Medium',ALL,'Configure attempt limits and login delay on all devices.','aaa authentication attempts login 3\nip ssh authentication-retries 3\nlogin delay 1'),
+ C('X7','AAA','Multi-factor authentication enforced for all administrative access (via AAA, PAM or jump hosts)','Ext','Critical',ALL,'Integrate AAA with an MFA provider. Route all admin access via PAM or MFA-protected bastions.'),
+ C('P1','PWD','Unique account per administrator, no shared group accounts, and break-glass credentials held by a trusted custodian','5.1','High',ALL,'Remove group accounts. Create per-admin accounts. Vault the emergency local credentials and rotate them after use.'),
+ C('P2','PWD','Default credentials changed on every device before it connects to the network','5.2','Critical',ALL,'Add a default-credential check to the device onboarding checklist and run periodic scans.'),
+ C('P3','PWD','Unnecessary and default accounts removed. Accounts disabled on leaver or role change','5.3','Medium',ALL,'Integrate network accounts with the joiner-mover-leaver process.','no username <NAME>'),
+ C('P4','PWD','Passwords stored with Type 8 (PBKDF2-SHA-256), Type 6 AES for reversible secrets, and no Type 0/4/5/7','5.4','High',ALL,'Re-set all secrets with algorithm-type sha256. Enable Type 6 for VPN keys with a unique key per device.','service password-encryption\nusername <NAME> algorithm-type sha256 secret <PASSWORD>\npassword encryption aes\nkey config-key password-encrypt <KEY>'),
+ C('P5','PWD','Strong (≥15 characters, all character classes) and unique passwords for every account, level, device, SNMP, NTP, routing and VPN key','5.5/5.6','High',ALL,'Generate secrets from a vault. Detect identical hashes across devices.'),
+ C('P6','PWD','Passwords changed immediately on suspected compromise. Aging policy applied where confidentiality cannot be assured','5.7','Medium',ALL,'Define a rotation policy for local secrets. Rotate any secret exposed via email or unprotected shares.'),
+ C('L1','LOG','Syslog enabled with a ≥16 MB local buffer at informational level','6.1','Medium',ALL,'Apply the logging baseline to all devices.','logging on\nlogging buffered 16777216 informational\nlogging trap informational\nno logging console\nno logging monitor'),
+ C('L2','LOG','At least two remote log servers, logs encrypted in transit, aggregated in a SIEM with OMB M-21-31-aligned retention','6.2','High',ALL,'Configure dual log targets. Tunnel syslog over IPsec/TLS. Onboard to SIEM with network detection use cases.','logging host <IP_ADDRESS_1>\nlogging host <IP_ADDRESS_2>'),
+ C('L3','LOG','UTC timestamps with year and milliseconds, and successful/failed login events logged','6.3','Medium',ALL,'Standardize timestamp format and login logging.','clock timezone UTC 0 0\nservice timestamps log datetime msec localtime show-timezone year\nservice timestamps debug datetime msec localtime show-timezone year\nlogin on-failure log\nlogin on-success log'),
+ C('L4','LOG','Devices synchronized to at least two authenticated NTP sources via an internal time hierarchy','6.4','High',ALL,'Deploy internal stratum servers. Enable NTP authentication with unique keys.','ntp authentication-key 1 md5 <KEY>\nntp trusted-key 1\nntp authentication-key 2 md5 <KEY>\nntp trusted-key 2\nntp authenticate\nntp server <IP_ADDRESS_1> key 1\nntp server <IP_ADDRESS_2> key 2'),
+ C('R1','MGT','Cleartext administration services disabled (Telnet, HTTP, FTP, TFTP, SNMP v1/v2c)','7.1','Critical',ALL,'Disable cleartext services and remove community strings. Use console or OOB for devices that lack encryption support.','line vty 0 4\n transport input none\nline vty 5 15\n transport input none\nno ip http server\nno snmp-server community <COMMUNITY_STRING>\nno tftp-server <FILENAME>\nno ip ftp username\nno ip ftp password'),
+ C('R2','MGT','Adequate key strength: RSA ≥3072, ECC 384, 256-bit symmetric','7.2','High',ALL,'Regenerate weak key pairs and restrict to approved algorithms.','crypto key generate rsa modulus 3072\ncrypto key generate ec keysize 384'),
+ C('R3','MGT','SSHv2 only with DH ≥4096 and CNSA algorithms. HTTPS management limited to TLS 1.2+','7.3','High',ALL,'Enforce SSHv2 and TLS 1.2+ and pin the algorithm suites.','ip ssh version 2\nip ssh dh min 4096\nline vty 0 4\n transport input ssh\nline vty 5 15\n transport input ssh\nip http secure-server\nip http tls-version TLSv1.2'),
+ C('R4','MGT','Management access restricted by ACLs to admin systems, or through a dedicated out-of-band management network','7.4','Critical',ALL,'Build an OOB management VRF/VLAN. Apply access-class ACLs on VTY/HTTP/SNMP. Use static or reserved admin IPs.','line vty 0 4\n access-class <ACL#> in\nline vty 5 15\n access-class <ACL#> in\nip http access-class <ACL#>'),
+ C('R5','MGT','Idle session timeout ≤5 minutes (never 0) and TCP keep-alives enabled','7.5/7.6','Low',ALL,'Apply exec-timeout and keep-alives.','line con 0\n exec-timeout 5 0\nline vty 0 4\n exec-timeout 5 0\nline vty 5 15\n exec-timeout 5 0\nservice tcp-keepalives-in\nservice tcp-keepalives-out'),
+ C('R6','MGT','Outbound connections from device lines disabled to prevent pivoting','7.7','Medium',ALL,'Disable transport output on con/vty lines.','line con 0\n transport output none\nline vty 0 4\n transport output none\nline vty 5 15\n transport output none'),
+ C('R7','MGT','SNMP read-write community strings removed. SNMPv3 with authPriv and ACLs','7.8/7.11.3','High',ALL,'Migrate monitoring to SNMPv3 authPriv. Remove RW communities.','snmp-server group <SNMPv3_GROUP> v3 priv access <ACL#>\nsnmp-server user <USER> <SNMPv3_GROUP> v3 auth sha <AUTH_PASSWORD> priv aes 256 <PRIV_PASSWORD> access <ACL#>'),
+ C('R8','MGT','Cisco Smart Install and other unnecessary TCP/UDP services disabled','7.9','Critical',ALL,'Disable Smart Install everywhere and remove small servers and finger.','no vstack\nno service tcp-small-servers\nno service udp-small-servers\nno service finger'),
+ C('R9','MGT','CDP/LLDP disabled except on point-to-point links or voice ports that need them','7.10','Low',ALL,'Disable discovery protocols globally and enable them per interface where justified.','no cdp run\nno lldp run'),
+ C('T1','RTE','IP source routing disabled for IPv4 and IPv6 on all devices','8.1','Medium',ALL,'Disable source routing on routers and switches.','no ip source-route\nno ipv6 source-route'),
+ C('T2','RTE','uRPF enabled on external interfaces of perimeter routers (not on asymmetric or internal paths)','8.2','Medium',['RA1','RA2','RA3','RA4'],'Enable CEF and strict uRPF on internet-facing interfaces.','ip cef\ninterface <INTERFACE>\n ip verify unicast reverse-path'),
+ C('T3','RTE','Routing protocol authentication (OSPF/EIGRP HMAC-SHA-384/512 key chains, BGP per-peer keys), unique per neighbor, and no RIP','8.3','High',['RA1','RA2','RA3','RA4','RA6'],'Enable key-chain authentication with unique keys and retire RIP.','key chain <KEY_CHAIN_NAME>\n key <KEY_NUMBER>\n  key-string <KEY>\n  cryptographic-algorithm hmac-sha-512\ninterface <INTERFACE>\n ip ospf authentication key-chain <KEY_CHAIN_NAME>\nrouter bgp <AS_NUMBER>\n neighbor <IP_ADDRESS_1> password <KEY>'),
+ C('I1','PRT','Dynamic trunking (DTP) disabled. Every port explicitly set to access or trunk','9.1','High',['RA2','RA3','RA6'],'Hard-code switchport mode on all interfaces.','interface <INTERFACE>\n switchport mode access\n switchport nonegotiate'),
+ C('I2','PRT','Port security (max 1 MAC, or 2 with VoIP) where NAC is not implemented','9.2','Medium',['RA2','RA3','RA6'],'Enable port security with sticky MAC as an interim control until 802.1X is in place.','interface <INTERFACE>\n switchport mode access\n switchport port-security\n switchport port-security maximum 1\n switchport port-security violation shutdown\n switchport port-security mac-address sticky'),
+ C('I3','PRT','Default VLAN 1 not used. Unique native trunk VLAN. Management and user traffic on separate VLANs','9.3','Medium',['RA2','RA3','RA6'],'Move management and user traffic off VLAN 1. Assign a dedicated native VLAN and unused access VLANs.','vlan 500\n name NATIVE-TRUNK\nvlan 997\n name UNUSED-ACCESS\n shutdown\ninterface <INTERFACE>\n switchport mode trunk\n switchport access vlan 997\n switchport trunk native vlan 500'),
+ C('I4','PRT','Unused ports administratively shut down and assigned to an unused, disabled VLAN','9.4','Medium',['RA2','RA3','RA6'],'Shut down unused interfaces and park them in the black-hole VLAN.','interface range <INTERFACE_RANGE>\n switchport mode access\n switchport access vlan 999\n shutdown'),
+ C('I5','PRT','Port monitoring (SPAN/RSPAN) disabled unless authorized and documented','9.5','Low',['RA2','RA3','RA6'],'Remove unauthorized monitor sessions. Document approved TAP/SPAN.','no monitor session <SESSION_NUMBER>'),
+ C('I6','PRT','Proxy ARP disabled on all interfaces','9.6','Low',ALL,'Disable proxy ARP on L3 interfaces.','interface <INTERFACE>\n no ip proxy-arp'),
+ C('B1','GOV','Legal notification and consent banner presented before login','10.1','Low',ALL,'Apply a banner approved by legal counsel.','banner login ^C\nAuthorized use only. Activity may be monitored and recorded.\n^C'),
+ C('Z1','ZTC','Identity- and posture-aware ZTNA for private apps replacing broad network-level remote-access VPN','Ext','High',['RA5'],'Pilot ZTNA for high-risk user groups. Retire full-tunnel VPN access to flat networks.'),
+ C('Z2','ZTC','East-west microsegmentation with workload-identity policies for data center and cloud','Ext','High',['RA3','RA4'],'Map application flows. Enforce allow-list microsegmentation for crown-jewel applications first.'),
+ C('Z3','ZTC','Centralized egress inspection (NGFW/SWG) with FQDN/URL filtering for all internet-bound traffic, cloud included','Ext','High',['RA1','RA4','RA5'],'Route all egress via inspection (e.g., AWS Network Firewall/GWLB, SWG). Remove direct IGW/NAT egress from workload subnets.'),
+ C('Z4','ZTC','Protective DNS / DNS firewall with query logging','Ext','Medium',ALL,'Enforce resolvers with threat-intelligence blocking (e.g., Route 53 Resolver DNS Firewall). Log all queries to the SIEM.'),
+ C('Z5','ZTC','DDoS protection and WAF in front of internet-facing applications','Ext','High',['RA1','RA4'],'Onboard public endpoints to DDoS scrubbing/Shield Advanced and a managed WAF rule set.'),
+ C('Z6','ZTC','Encryption in transit on private interconnects and east-west links (MACsec, IPsec over Direct Connect, TLS)','Ext','Medium',['RA3','RA4'],'Enable MACsec on DCI/Direct Connect, or IPsec overlays for sensitive flows.'),
+ C('Z7','ZTC','Network-as-code with policy guardrails (IaC scanning, preventive org policies, centralized firewall policy management)','Ext','Medium',['RA4'],'Manage network constructs via IaC pipelines with policy-as-code checks and Firewall Manager/SCP guardrails.'),
+ C('Z8','ZTC','OT boundary: Purdue-aligned zones, an Industrial DMZ, unidirectional gateways for data export, and passive OT network monitoring','Ext','Critical',['RA6'],'Establish an IDMZ with no direct IT-to-OT flows. Deploy data diodes for historian replication and passive OT NDR.')
+];
+const CMAP={};CONTROLS.forEach(c=>CMAP[c.id]=c);
+
+/* type codes: s=security n=network i=identity m=mgmt a=asset */
+const RAS=[
+ {id:'RA1',name:'Enterprise Perimeter & DMZ',short:'Layered dual-vendor edge',
+  desc:'This is the classic NSA layered perimeter. A border router faces the ISPs, and two NGFW layers from different vendors enclose one or more DMZ subnets. Monitoring and redundant logging run across all tiers.',
+  tiers:[['Internet',['n|ISP-A','n|ISP-B','s|DDoS scrubbing']],['Edge',['n|Border router (uRPF, ingress ACL, BGP auth)']],['Outer FW',['s|NGFW — Vendor A + IPS','s|VPN gateway (IKE/ESP only)']],['DMZ',['a|Web / reverse proxy + WAF','a|Mail relay','s|Outbound proxy / SWG','a|Public DNS']],['Inner FW',['s|NGFW — Vendor B (deny-by-default)']],['Internal',['n|Core switching (HA)','a|Server zones','a|User zones']],['Mgmt & Visibility',['i|AAA ×2','m|Syslog / SIEM ×2','m|NTP ×2 (auth)','m|NIDS / full PCAP']]],
+  dec:['Different vendors on the outer and inner firewalls so one exploit cannot defeat both layers','Border router has no direct path to internal or management subnets (no backdoors)','All deny rules logged; IPS in front of remote-access VPN','HA pairs at core and firewall tiers'],
+  thr:['Exploitation of an internet-facing service','Single-vendor zero-day bypass','IP spoofing and volumetric DDoS','Brute force against VPN gateways'],
+  ctl:['A1','A2','A3','A4','A6','A7','A8','A10','A11','T2','T3','Z5']},
+ {id:'RA2',name:'Campus & Branch',short:'NAC + segmentation + SD-WAN',
+  desc:'A user-facing campus and branch network. Access is authenticated with 802.1X and segmented by function. Inter-VLAN traffic is filtered at distribution, and branches connect over SD-WAN with local security.',
+  tiers:[['WAN',['n|SD-WAN fabric (IPsec)','n|Local internet breakout']],['Branch edge',['s|SD-WAN edge + NGFW','s|Cloud SWG tunnel']],['Distribution',['n|L3 distribution (routing auth)','s|Inter-VLAN ACLs / internal FW']],['Access',['s|802.1X switches (no DTP)','s|Wireless WPA3-Enterprise']],['Segments',['a|Users','a|VoIP','a|Printers / IoT','a|Guest','a|Quarantine']],['Services',['i|NAC / RADIUS + PKI','n|DHCP / DNS','m|Syslog / NTP']]],
+  dec:['EAP-TLS device certificates, with MAB plus profiling only for headless devices','Printers and IoT isolated, since attackers target them for initial access','VLAN 1 unused, unique native VLAN, unused ports parked and shut down','Guest traffic tunnelled straight to the internet with no internal reach'],
+  thr:['Rogue device plugged into an open port','VLAN hopping through DTP or native VLAN','Lateral movement from compromised IoT','MAC spoofing'],
+  ctl:['A5','A7','A9','I1','I2','I3','I4','I5','T3','Z4']},
+ {id:'RA3',name:'Data Center & Out-of-Band Management',short:'Spine-leaf + isolated mgmt plane',
+  desc:'A spine-leaf data center with tiered application zones and east-west microsegmentation. A physically separate out-of-band management network is reachable only through MFA-protected jump hosts.',
+  tiers:[['Interconnect',['n|DC edge routers (BGP auth, uRPF)','n|DCI (MACsec)']],['Perimeter',['s|NGFW cluster (HA)','s|IPS']],['Fabric',['n|Spine (authenticated routing)','n|Leaf / ToR (static trunks)']],['Workload zones',['a|Web tier','a|App tier','a|DB tier','a|Shared services']],['East-west',['s|Microsegmentation policy','m|NDR sensors']],['OOB management',['i|PAW / jump hosts + MFA','s|Mgmt VRF + ACLs','m|Console servers','m|Config backup (SCP) + drift']]],
+  dec:['Management plane never shares a data VLAN; access-class ACLs on every device','Allow-list microsegmentation for crown-jewel tiers','Golden configs with automated drift detection','Image hashes verified on every upgrade'],
+  thr:['Lateral movement between application tiers','Management plane compromise','Malicious firmware or config tampering','Route injection'],
+  ctl:['A1','A4','A5','A6','M1','M2','R4','T3','I1','Z2','Z6','X7']},
+ {id:'RA4',name:'Hybrid Cloud (AWS hub-and-spoke)',short:'TGW + centralized inspection',
+  desc:'On-premises networks connect to AWS over Direct Connect, with IPsec VPN as backup. A Transit Gateway hub sends inter-VPC and egress traffic through a centralized inspection VPC. Internet ingress terminates at a protected edge.',
+  tiers:[['On-premises',['a|DC / campus','n|Customer edge router']],['Connectivity',['n|Direct Connect (MACsec)','s|Site-to-Site VPN (IKEv2 CNSA)']],['Hub',['n|Transit Gateway (route domains)','s|Inspection VPC — Network Firewall / GWLB','s|Egress VPC — NAT + FQDN filtering']],['Edge',['s|CloudFront + WAF + Shield','s|Ingress VPC / ALB']],['Spokes',['a|Prod VPCs','a|Non-prod VPCs','a|Shared services VPC']],['Guardrails',['i|SCPs / Firewall Manager','m|VPC Flow Logs → SIEM','s|Route 53 DNS Firewall','m|GuardDuty / threat detection']]],
+  dec:['No IGW or NAT in spoke VPCs; all egress goes through inspection','Separate TGW route tables for prod and non-prod, so the two cannot reach each other','Network built from IaC with policy-as-code and preventive guardrails','Backup VPN aligned with the CNSSP 15 crypto profile'],
+  thr:['Data exfiltration through uninspected egress','Over-permissive security groups','Cross-environment lateral movement','DNS tunnelling'],
+  ctl:['A1','A2','A5','A7','A10','A11','Z2','Z3','Z4','Z5','Z6','Z7']},
+ {id:'RA5',name:'Zero Trust Remote Access (ZTNA / SASE)',short:'Identity-centric access',
+  desc:'Remote and branch users reach private and SaaS apps through SASE points of presence. Each request is evaluated on identity, device posture and risk. App connectors make outbound-only connections, so the attack surface shrinks compared with an exposed VPN.',
+  tiers:[['Subjects',['a|Managed devices','a|Contractors / BYOD','a|Branch users']],['Signals',['i|IdP + phishing-resistant MFA','i|Device posture (EDR / MDM)','i|Risk / UEBA engine']],['SASE PoP',['s|ZTNA broker','s|SWG','s|CASB / DLP','s|FWaaS']],['Connectors',['n|App connectors (outbound-only)']],['Resources',['a|Private DC apps','a|IaaS apps','a|SaaS']],['Telemetry',['m|SIEM / SOAR','m|Access logs + session analytics']]],
+  dec:['Per-application access instead of network-level access','No inbound listener exposed for private apps','Continuous re-evaluation of posture during the session','Legacy VPN kept only for exceptions, hardened per §2.6'],
+  thr:['VPN gateway zero-days','Credential theft and session hijack','Over-broad network access after login','Shadow IT data leakage'],
+  ctl:['Z1','Z3','Z4','X7','A10','A11','A3','L2']},
+ {id:'RA6',name:'OT / ICS Segmentation (Purdue)',short:'IDMZ + unidirectional flows',
+  desc:'Industrial networks are segmented by Purdue level, and an Industrial DMZ brokers every IT-to-OT interaction. Process data is exported through unidirectional gateways and monitored passively.',
+  tiers:[['L4–5 Enterprise',['a|Enterprise IT','a|ERP / MES integration']],['L3.5 IDMZ',['s|IDMZ firewalls (dual)','a|Patch / AV staging','a|Historian replica','i|Remote access jump host + MFA']],['L3 Site ops',['a|Historian','a|Engineering workstations','i|OT directory']],['L2 Supervisory',['a|HMI','a|SCADA servers']],['L1 Control',['a|PLC / RTU','a|Safety (SIS) — isolated']],['L0 Process',['a|Sensors','a|Actuators']],['Monitoring',['s|Unidirectional gateway','m|Passive OT NDR','m|OT log collector']]],
+  dec:['No direct IT-to-OT flows; every session terminates in the IDMZ','Safety systems physically isolated','Data diodes for historian and telemetry export','802.1X or port security and static trunks on OT switches'],
+  thr:['Ransomware spreading from IT into OT','Unauthorized remote vendor access','Tampering with control logic','Rogue engineering laptops'],
+  ctl:['A2','A5','A6','A7','A9','I1','I2','I4','T3','Z8','X7']}
+];
+
+if (typeof module !== 'undefined') module.exports = { DOMAINS, SEVW, ALL, CONTROLS, CMAP, RAS };
+</script>
+<script>
+/*! Enterprise Network Security Blueprint | MIT License | https://github.com/ */
+/* ===================== FRAMEWORK CROSS-MAPPING =====================
+   Indicative architect mappings (not official crosswalks).
+   XMAP: control id -> [NIST CSF 2.0, CIS v8, ISO/IEC 27001:2022 Annex A, NIST SP 800-53 r5, MITRE ATT&CK]. */
+const FW={
+ CSF:{name:'NIST CSF 2.0',grp:c=>c.split('.')[0],gn:{GV:'Govern',ID:'Identify',PR:'Protect',DE:'Detect',RS:'Respond',RC:'Recover'},t:{
+  'GV.OC-03':'Legal, regulatory and contractual cybersecurity requirements are understood and managed',
+  'ID.AM-01':'Inventories of hardware managed by the organization are maintained',
+  'ID.AM-03':'Representations of authorized network communication and data flows are maintained',
+  'ID.RA-01':'Vulnerabilities in assets are identified, validated and recorded',
+  'PR.AA-01':'Identities and credentials for authorized users, services and hardware are managed',
+  'PR.AA-03':'Users, services and hardware are authenticated',
+  'PR.AA-05':'Access permissions and authorizations are defined, managed, enforced and reviewed (least privilege)',
+  'PR.DS-01':'Confidentiality, integrity and availability of data-at-rest are protected',
+  'PR.DS-02':'Confidentiality, integrity and availability of data-in-transit are protected',
+  'PR.DS-11':'Backups of data are created, protected, maintained and tested',
+  'PR.PS-01':'Configuration management practices are established and applied',
+  'PR.PS-02':'Software is maintained, replaced and removed commensurate with risk',
+  'PR.PS-03':'Hardware is maintained, replaced and removed commensurate with risk',
+  'PR.PS-04':'Log records are generated and made available for continuous monitoring',
+  'PR.IR-01':'Networks and environments are protected from unauthorized logical access and usage',
+  'PR.IR-03':'Mechanisms are implemented to achieve resilience requirements',
+  'PR.IR-04':'Adequate resource capacity to ensure availability is maintained',
+  'DE.CM-01':'Networks and network services are monitored to find potentially adverse events',
+  'DE.CM-03':'Personnel activity and technology usage are monitored',
+  'DE.CM-09':'Computing hardware, software and runtime environments are monitored',
+  'DE.AE-02':'Potentially adverse events are analyzed to better understand associated activities',
+  'DE.AE-03':'Information is correlated from multiple sources',
+  'RS.MI-01':'Incidents are contained'}},
+ CIS:{name:'CIS Controls v8',grp:c=>c.split('.')[0],gn:{'1':'CIS 1 · Asset Inventory','3':'CIS 3 · Data Protection','4':'CIS 4 · Secure Configuration','5':'CIS 5 · Account Mgmt','6':'CIS 6 · Access Control','7':'CIS 7 · Vulnerability Mgmt','8':'CIS 8 · Audit Log Mgmt','9':'CIS 9 · Email & Web','11':'CIS 11 · Data Recovery','12':'CIS 12 · Network Infra Mgmt','13':'CIS 13 · Network Monitoring & Defense'},t:{
+  '1.1':'Establish and maintain detailed enterprise asset inventory',
+  '3.10':'Encrypt sensitive data in transit',
+  '3.12':'Segment data processing and storage based on sensitivity',
+  '4.1':'Establish and maintain a secure configuration process',
+  '4.2':'Secure configuration process for network infrastructure',
+  '4.3':'Configure automatic session locking on enterprise assets',
+  '4.6':'Securely manage enterprise assets and software',
+  '4.7':'Manage default accounts on enterprise assets and software',
+  '4.8':'Uninstall or disable unnecessary services',
+  '5.1':'Establish and maintain an inventory of accounts',
+  '5.2':'Use unique passwords',
+  '5.3':'Disable dormant accounts',
+  '5.4':'Restrict administrator privileges to dedicated administrator accounts',
+  '6.2':'Establish an access revoking process',
+  '6.4':'Require MFA for remote network access',
+  '6.5':'Require MFA for administrative access',
+  '6.7':'Centralize access control',
+  '6.8':'Define and maintain role-based access control',
+  '7.1':'Establish and maintain a vulnerability management process',
+  '7.2':'Establish and maintain a remediation process',
+  '8.1':'Establish and maintain an audit log management process',
+  '8.2':'Collect audit logs',
+  '8.3':'Ensure adequate audit log storage',
+  '8.4':'Standardize time synchronization',
+  '8.5':'Collect detailed audit logs',
+  '8.6':'Collect DNS query audit logs',
+  '8.9':'Centralize audit logs',
+  '8.10':'Retain audit logs',
+  '8.11':'Conduct audit log reviews',
+  '9.2':'Use DNS filtering services',
+  '9.3':'Maintain and enforce network-based URL filters',
+  '11.2':'Perform automated backups',
+  '11.3':'Protect recovery data',
+  '12.1':'Ensure network infrastructure is up-to-date',
+  '12.2':'Establish and maintain a secure network architecture',
+  '12.3':'Securely manage network infrastructure',
+  '12.4':'Establish and maintain architecture diagram(s)',
+  '12.5':'Centralize network authentication, authorization and auditing (AAA)',
+  '12.6':'Use secure network management and communication protocols',
+  '12.7':'Remote devices use VPN and connect to enterprise AAA',
+  '12.8':'Dedicated computing resources for all administrative work',
+  '13.1':'Centralize security event alerting',
+  '13.3':'Deploy a network intrusion detection solution',
+  '13.4':'Perform traffic filtering between network segments',
+  '13.5':'Manage access control for remote assets',
+  '13.6':'Collect network traffic flow logs',
+  '13.8':'Deploy a network intrusion prevention solution',
+  '13.9':'Deploy port-level access control',
+  '13.10':'Perform application layer filtering'}},
+ ISO:{name:'ISO/IEC 27001:2022 Annex A',grp:c=>c.split('.')[0],gn:{'5':'A.5 Organizational','6':'A.6 People','7':'A.7 Physical','8':'A.8 Technological'},t:{
+  '5.9':'Inventory of information and other associated assets',
+  '5.14':'Information transfer',
+  '5.15':'Access control',
+  '5.16':'Identity management',
+  '5.17':'Authentication information',
+  '5.18':'Access rights',
+  '5.21':'Managing information security in the ICT supply chain',
+  '5.23':'Information security for use of cloud services',
+  '5.31':'Legal, statutory, regulatory and contractual requirements',
+  '6.7':'Remote working',
+  '7.13':'Equipment maintenance',
+  '8.2':'Privileged access rights',
+  '8.3':'Information access restriction',
+  '8.5':'Secure authentication',
+  '8.6':'Capacity management',
+  '8.8':'Management of technical vulnerabilities',
+  '8.9':'Configuration management',
+  '8.13':'Information backup',
+  '8.14':'Redundancy of information processing facilities',
+  '8.15':'Logging',
+  '8.16':'Monitoring activities',
+  '8.17':'Clock synchronization',
+  '8.19':'Installation of software on operational systems',
+  '8.20':'Networks security',
+  '8.21':'Security of network services',
+  '8.22':'Segregation of networks',
+  '8.23':'Web filtering',
+  '8.24':'Use of cryptography',
+  '8.32':'Change management'}}
+};
+/* id: [CSF 2.0, CIS v8, ISO 27001:2022] */
+const XMAP={
+ A1:[['PR.IR-01'],['12.2','13.4','13.10'],['8.20','8.22']],
+ A2:[['PR.IR-01'],['12.2','13.4'],['8.20','8.22']],
+ A3:[['DE.CM-01','DE.AE-02'],['13.3','13.6'],['8.16']],
+ A4:[['PR.IR-03'],['12.2'],['8.14']],
+ A5:[['PR.IR-01','ID.AM-03'],['3.12','12.2','13.4'],['8.22']],
+ A6:[['PR.IR-01','ID.AM-03'],['12.2','12.4'],['8.20','8.22']],
+ A7:[['PR.IR-01','PR.PS-04'],['12.2','13.4','8.2'],['8.20','8.21','8.15']],
+ A8:[['DE.CM-01','RS.MI-01'],['13.8'],['8.16','8.20']],
+ A9:[['PR.AA-03','PR.IR-01'],['13.9'],['8.5','8.20']],
+ A10:[['PR.IR-01'],['12.7','4.8'],['8.20','8.21','6.7']],
+ A11:[['PR.DS-02'],['3.10','12.6'],['8.24','5.14']],
+ M1:[['PR.PS-02','DE.CM-09'],['12.3'],['8.19','5.21']],
+ M2:[['PR.PS-01','DE.CM-09'],['4.1','4.2','12.3'],['8.9','8.32']],
+ M3:[['PR.DS-11','PR.PS-01'],['11.2','11.3'],['8.13','8.9']],
+ M4:[['PR.PS-02','ID.RA-01'],['7.1','7.2','12.1'],['8.8']],
+ M5:[['PR.PS-03','ID.AM-01'],['1.1','12.1'],['5.9','7.13']],
+ X1:[['PR.AA-01'],['12.5','6.7'],['5.16','8.5']],
+ X2:[['PR.AA-03'],['12.5','6.7'],['8.5','5.17']],
+ X3:[['PR.AA-05'],['6.8'],['8.2','5.15']],
+ X4:[['PR.PS-04','DE.CM-03'],['8.2','8.5','8.11'],['8.15','8.16']],
+ X5:[['PR.AA-05'],['5.4','6.8'],['8.2','5.18']],
+ X6:[['PR.AA-03'],['4.2'],['8.5']],
+ X7:[['PR.AA-03'],['6.5','6.4'],['8.5']],
+ P1:[['PR.AA-01'],['5.1','5.4'],['5.16','8.2']],
+ P2:[['PR.AA-01','PR.PS-01'],['4.7'],['5.17','8.9']],
+ P3:[['PR.AA-01'],['5.3','6.2'],['5.16','5.18']],
+ P4:[['PR.AA-01','PR.DS-01'],['5.2'],['5.17','8.24']],
+ P5:[['PR.AA-01'],['5.2'],['5.17']],
+ P6:[['PR.AA-01'],['5.2'],['5.17']],
+ L1:[['PR.PS-04'],['8.1','8.2','8.3'],['8.15']],
+ L2:[['PR.PS-04','DE.AE-03'],['8.9','8.10','13.1'],['8.15','8.16']],
+ L3:[['PR.PS-04'],['8.5'],['8.15','8.17']],
+ L4:[['PR.PS-04'],['8.4'],['8.17']],
+ R1:[['PR.DS-02','PR.PS-01'],['4.6','12.6'],['8.21','8.24']],
+ R2:[['PR.DS-02'],['3.10'],['8.24']],
+ R3:[['PR.DS-02'],['4.6','12.6'],['8.24']],
+ R4:[['PR.IR-01','PR.AA-05'],['12.3','12.8'],['8.20','8.2']],
+ R5:[['PR.PS-01'],['4.3'],['8.5']],
+ R6:[['PR.IR-01'],['12.3'],['8.20']],
+ R7:[['PR.DS-02','PR.PS-01'],['4.6','12.6'],['8.21','8.24']],
+ R8:[['PR.PS-01'],['4.8'],['8.9','8.21']],
+ R9:[['PR.PS-01'],['4.8'],['8.9']],
+ T1:[['PR.PS-01','PR.IR-01'],['4.2'],['8.20']],
+ T2:[['PR.IR-01'],['12.2'],['8.20']],
+ T3:[['PR.IR-01','PR.DS-02'],['12.3','12.6'],['8.20','8.21']],
+ I1:[['PR.PS-01'],['4.2'],['8.9','8.22']],
+ I2:[['PR.AA-03','PR.IR-01'],['13.9'],['8.20']],
+ I3:[['PR.IR-01'],['4.2','12.2'],['8.22']],
+ I4:[['PR.PS-01'],['4.2','4.8'],['8.9']],
+ I5:[['PR.PS-01'],['4.2'],['8.9']],
+ I6:[['PR.PS-01'],['4.2'],['8.9']],
+ B1:[['GV.OC-03'],[],['5.31']],
+ Z1:[['PR.AA-05','PR.IR-01'],['6.4','12.7','13.5'],['8.3','6.7','8.20']],
+ Z2:[['PR.IR-01'],['13.4','3.12'],['8.22']],
+ Z3:[['PR.IR-01','DE.CM-01'],['9.3','13.10'],['8.23','8.20']],
+ Z4:[['DE.CM-01'],['9.2','8.6'],['8.23','8.16']],
+ Z5:[['PR.IR-01','PR.IR-04'],['13.10'],['8.20','8.6']],
+ Z6:[['PR.DS-02'],['3.10'],['8.24']],
+ Z7:[['PR.PS-01'],['4.1','4.2'],['8.9','8.32','5.23']],
+ Z8:[['PR.IR-01','DE.CM-01'],['12.2','13.4'],['8.22','8.20']]
+};
+
+/* ---------- NIST SP 800-53 Rev. 5 ---------- */
+FW.N53={name:'NIST SP 800-53 Rev. 5',grp:c=>c.split('-')[0],gn:{AC:'AC · Access Control',AU:'AU · Audit & Accountability',CM:'CM · Configuration Mgmt',CP:'CP · Contingency Planning',IA:'IA · Identification & Authentication',MA:'MA · Maintenance',PL:'PL · Planning',RA:'RA · Risk Assessment',SA:'SA · System & Services Acquisition',SC:'SC · System & Communications Protection',SI:'SI · System & Information Integrity',SR:'SR · Supply Chain Risk Mgmt'},t:{
+ 'AC-2':'Account Management','AC-3':'Access Enforcement','AC-4':'Information Flow Enforcement','AC-6':'Least Privilege','AC-7':'Unsuccessful Logon Attempts','AC-8':'System Use Notification','AC-11':'Device Lock','AC-12':'Session Termination','AC-17':'Remote Access',
+ 'AU-2':'Event Logging','AU-3':'Content of Audit Records','AU-4':'Audit Log Storage Capacity','AU-6':'Audit Record Review, Analysis, and Reporting','AU-8':'Time Stamps','AU-9':'Protection of Audit Information','AU-11':'Audit Record Retention','AU-12':'Audit Record Generation',
+ 'CM-2':'Baseline Configuration','CM-3':'Configuration Change Control','CM-6':'Configuration Settings','CM-7':'Least Functionality',
+ 'CP-9':'System Backup',
+ 'IA-2':'Identification and Authentication (Organizational Users)','IA-2(1)':'Multi-factor Authentication to Privileged Accounts','IA-3':'Device Identification and Authentication','IA-5':'Authenticator Management','IA-5(1)':'Password-based Authentication',
+ 'MA-4':'Nonlocal Maintenance','MA-6':'Timely Maintenance',
+ 'PL-8':'Security and Privacy Architectures',
+ 'RA-5':'Vulnerability Monitoring and Scanning',
+ 'SA-22':'Unsupported System Components',
+ 'SC-5':'Denial-of-Service Protection','SC-6':'Resource Availability','SC-7':'Boundary Protection','SC-7(5)':'Boundary Protection | Deny by Default — Allow by Exception','SC-7(8)':'Boundary Protection | Route Traffic to Authenticated Proxy Servers','SC-8':'Transmission Confidentiality and Integrity','SC-10':'Network Disconnect','SC-12':'Cryptographic Key Establishment and Management','SC-13':'Cryptographic Protection','SC-23':'Session Authenticity','SC-32':'System Partitioning','SC-45':'System Time Synchronization',
+ 'SI-2':'Flaw Remediation','SI-4':'System Monitoring','SI-4(4)':'System Monitoring | Inbound and Outbound Communications Traffic','SI-7':'Software, Firmware, and Information Integrity',
+ 'SR-11':'Component Authenticity'}};
+
+/* ---------- MITRE ATT&CK (Enterprise + ICS) ----------
+   Semantics: a technique is "covered" when the blueprint controls that mitigate or detect it are implemented. */
+const ATK_TAC={T1595:'01',T1590:'01',T1190:'02',T1133:'02',T1199:'02',T1200:'02',T1195:'02',T1078:'02','T1078.001':'02',T1098:'03','T1542.005':'03',
+ T1599:'05',T1600:'05',T1601:'05',T1562:'05','T1562.004':'05',T1070:'05',
+ T1110:'06','T1110.002':'06','T1552.001':'06',T1040:'06',T1557:'06','T1557.002':'06','T1556.004':'06',
+ T1046:'07',T1018:'07',T1021:'08','T1021.004':'08',T1210:'08',T1563:'08','T1602.001':'09','T1602.002':'09',
+ 'T1071.004':'10',T1568:'10',T1572:'10',T1041:'11',T1048:'11',T1498:'12',T1499:'12','T1565.002':'12',T0822:'13',T0883:'13',T0886:'13'};
+FW.ATK={name:'MITRE ATT&CK (Enterprise + ICS)',grp:c=>ATK_TAC[c]||'99',gn:{'01':'Reconnaissance','02':'Initial Access','03':'Persistence','05':'Defense Evasion','06':'Credential Access','07':'Discovery','08':'Lateral Movement','09':'Collection','10':'Command & Control','11':'Exfiltration','12':'Impact','13':'ATT&CK for ICS'},t:{
+ T1595:'Active Scanning',T1590:'Gather Victim Network Information',
+ T1190:'Exploit Public-Facing Application',T1133:'External Remote Services',T1199:'Trusted Relationship',T1200:'Hardware Additions',T1195:'Supply Chain Compromise',T1078:'Valid Accounts','T1078.001':'Valid Accounts: Default Accounts',
+ T1098:'Account Manipulation','T1542.005':'Pre-OS Boot: TFTP Boot',
+ T1599:'Network Boundary Bridging',T1600:'Weaken Encryption',T1601:'Modify System Image',T1562:'Impair Defenses','T1562.004':'Impair Defenses: Disable or Modify System Firewall',T1070:'Indicator Removal',
+ T1110:'Brute Force','T1110.002':'Brute Force: Password Cracking','T1552.001':'Unsecured Credentials: Credentials In Files',T1040:'Network Sniffing',T1557:'Adversary-in-the-Middle','T1557.002':'Adversary-in-the-Middle: ARP Cache Poisoning','T1556.004':'Modify Authentication Process: Network Device Authentication',
+ T1046:'Network Service Discovery',T1018:'Remote System Discovery',
+ T1021:'Remote Services','T1021.004':'Remote Services: SSH',T1210:'Exploitation of Remote Services',T1563:'Remote Service Session Hijacking',
+ 'T1602.001':'Data from Configuration Repository: SNMP (MIB Dump)','T1602.002':'Data from Configuration Repository: Network Device Configuration Dump',
+ 'T1071.004':'Application Layer Protocol: DNS',T1568:'Dynamic Resolution',T1572:'Protocol Tunneling',
+ T1041:'Exfiltration Over C2 Channel',T1048:'Exfiltration Over Alternative Protocol',
+ T1498:'Network Denial of Service',T1499:'Endpoint Denial of Service','T1565.002':'Data Manipulation: Transmitted Data Manipulation',
+ T0822:'External Remote Services (ICS)',T0883:'Internet Accessible Device (ICS)',T0886:'Remote Services (ICS)'}};
+
+/* display metadata */
+Object.assign(FW.CSF,{abbr:'CSF',pre:'',gl:'function',unit:'Subcategories'});
+Object.assign(FW.CIS,{abbr:'CIS',pre:'',gl:'control',unit:'Safeguards'});
+Object.assign(FW.ISO,{abbr:'ISO',pre:'A.',gl:'theme',unit:'Annex A controls'});
+Object.assign(FW.N53,{abbr:'800-53',pre:'',gl:'family',unit:'Controls'});
+Object.assign(FW.ATK,{abbr:'ATT&CK',pre:'',gl:'tactic',unit:'Techniques'});
+
+/* id: [NIST SP 800-53 r5, MITRE ATT&CK techniques mitigated/detected] — appended to XMAP */
+const XMAP2={
+ A1:[['SC-7','AC-4','PL-8'],['T1190','T1133','T1599']],
+ A2:[['SC-7','SC-7(8)','AC-4'],['T1190','T1041']],
+ A3:[['SI-4','SI-4(4)','AU-6'],['T1046','T1210','T1041','T1048','T1572']],
+ A4:[['SC-5','SC-6'],['T1498']],
+ A5:[['SC-7','AC-4','SC-32'],['T1210','T1021','T1018']],
+ A6:[['SC-7','AC-4','PL-8'],['T1599']],
+ A7:[['SC-7(5)','AC-4','AU-12'],['T1190','T1133','T1048']],
+ A8:[['SI-4','SC-7'],['T1190','T1210','T1595']],
+ A9:[['IA-3','AC-3'],['T1200']],
+ A10:[['AC-17','SC-7','CM-7'],['T1133','T1110','T1190']],
+ A11:[['SC-8','SC-12','SC-13'],['T1040','T1557','T1600']],
+ M1:[['SI-7','SR-11'],['T1601','T1195']],
+ M2:[['CM-2','CM-3','CM-6'],['T1562.004','T1601','T1098']],
+ M3:[['CP-9','CM-2','SC-8'],['T1602.002','T1542.005']],
+ M4:[['SI-2','RA-5'],['T1190','T1210','T1133']],
+ M5:[['SA-22','MA-6'],['T1190','T1210']],
+ X1:[['IA-2','AC-2','IA-5'],['T1078','T1556.004']],
+ X2:[['IA-2','AC-3'],['T1078.001','T1556.004']],
+ X3:[['AC-3','AC-6'],['T1078','T1098']],
+ X4:[['AU-2','AU-12','AU-6'],['T1078','T1070']],
+ X5:[['AC-6','AC-2'],['T1078']],
+ X6:[['AC-7'],['T1110']],
+ X7:[['IA-2(1)','AC-17'],['T1078','T1110','T1133']],
+ P1:[['AC-2','IA-2'],['T1078']],
+ P2:[['IA-5','CM-6'],['T1078.001']],
+ P3:[['AC-2'],['T1078','T1078.001']],
+ P4:[['IA-5(1)','SC-13'],['T1110.002','T1552.001']],
+ P5:[['IA-5(1)'],['T1110','T1110.002']],
+ P6:[['IA-5'],['T1078','T1552.001']],
+ L1:[['AU-2','AU-4','AU-12'],['T1070']],
+ L2:[['AU-6','AU-9','AU-11','SI-4'],['T1070','T1562']],
+ L3:[['AU-3','AU-8'],['T1110','T1078']],
+ L4:[['AU-8','SC-45'],['T1070']],
+ R1:[['CM-7','SC-8','AC-17'],['T1040','T1602.001','T1557']],
+ R2:[['SC-12','SC-13'],['T1600','T1040']],
+ R3:[['SC-8','SC-13','SC-23'],['T1557','T1600','T1040']],
+ R4:[['AC-17','SC-7','MA-4'],['T1021.004','T1110','T1133']],
+ R5:[['AC-12','SC-10','AC-11'],['T1563']],
+ R6:[['AC-17','CM-7'],['T1021','T1021.004']],
+ R7:[['CM-7','SC-8','IA-3'],['T1602.001','T1040']],
+ R8:[['CM-7'],['T1602.002','T1601','T1190']],
+ R9:[['CM-7'],['T1590','T1040']],
+ T1:[['CM-7','SC-7'],['T1599']],
+ T2:[['SC-5','SC-7'],['T1498']],
+ T3:[['IA-3','SC-8','SC-23'],['T1557','T1565.002']],
+ I1:[['CM-6','SC-7'],['T1599','T1040']],
+ I2:[['IA-3','CM-6'],['T1200']],
+ I3:[['SC-7','CM-6'],['T1599']],
+ I4:[['CM-7'],['T1200']],
+ I5:[['CM-7'],['T1040']],
+ I6:[['CM-7'],['T1557.002']],
+ B1:[['AC-8'],[]],
+ Z1:[['AC-17','AC-3','SC-7'],['T1133','T1190','T1199']],
+ Z2:[['AC-4','SC-7','SC-32'],['T1210','T1021','T1046']],
+ Z3:[['SC-7(8)','SI-4(4)','AC-4'],['T1041','T1048','T1572']],
+ Z4:[['SI-4','SC-7'],['T1071.004','T1568','T1572']],
+ Z5:[['SC-5','SC-7'],['T1498','T1499','T1190']],
+ Z6:[['SC-8','SC-13'],['T1040','T1557']],
+ Z7:[['CM-2','CM-3','CM-6'],['T1562.004']],
+ Z8:[['SC-7','AC-4','SC-32','SI-4'],['T0822','T0883','T0886']]
+};
+Object.keys(XMAP2).forEach(k=>{if(XMAP[k])XMAP[k].push(...XMAP2[k]);});
+
+if (typeof module !== 'undefined') module.exports = { FW, XMAP };
+</script>
+<script>
+/*! Enterprise Network Security Blueprint | MIT License | https://github.com/ */
+/* Application logic: rendering, scoring, roadmap, hardening generator, framework view. */
+/* ===================== STATE ===================== */
+const KEY='nsbp_state_v1';
+let state={org:'',scope:'ALL',ans:{}};
+try{const s=localStorage.getItem(KEY);if(s)state=Object.assign(state,JSON.parse(s));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+const SV={impl:1,partial:0.5,none:0};
+const SL={'':'— Not assessed —',impl:'Implemented',partial:'Partial',none:'Not implemented',na:'N/A'};
+function applicable(c){return state.scope==='ALL'||c.ras===ALL||c.ras.includes(state.scope);}
+function st(id){return (state.ans[id]&&state.ans[id].s)||'';}
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function level(p){if(p==null)return 'Not assessed';if(p<40)return 'L1 · Initial';if(p<60)return 'L2 · Developing';if(p<80)return 'L3 · Defined';if(p<95)return 'L4 · Managed';return 'L5 · Optimized';}
+
+/* ===================== TABS ===================== */
+const tabs=document.querySelectorAll('#tabs button');
+function showTab(t){tabs.forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));if(t==='ga'){renderCharts();}if(t==='rm')renderRoadmap();if(t==='hb')renderHB();if(t==='fm')renderFM();try{history.replaceState(null,'','#'+t);}catch(e){}window.scrollTo(0,0);}
+tabs.forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+
+/* ===================== REFERENCE ARCHITECTURES ===================== */
+function wrap(t,max){const w=t.split(' ');const L=[];let cur='';w.forEach(x=>{if((cur+' '+x).trim().length>max&&cur){L.push(cur);cur=x;}else cur=(cur+' '+x).trim();});if(cur)L.push(cur);return L.slice(0,3);}
+function drawRA(ra){
+ const W=980,LW=150,TH=74,G=16,top=6;const H=top+ra.tiers.length*(TH+G)-G+6;
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(ra.name)} diagram" style="max-height:${H}px">`;
+ s+=`<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="arrh"/></marker></defs>`;
+ const avail=W-LW-16;
+ ra.tiers.forEach((t,i)=>{
+  const y=top+i*(TH+G);
+  s+=`<rect class="band" x="0" y="${y}" width="${W}" height="${TH}" rx="10"/>`;
+  wrap(t[0],16).forEach((ln,k)=>{s+=`<text class="tl" x="14" y="${y+TH/2-4+k*14}">${esc(ln)}</text>`;});
+  const n=t[1].length,gap=10;const bw=Math.min(200,(avail-(n-1)*gap)/n);const tot=n*bw+(n-1)*gap;const x0=LW+(avail-tot)/2;
+  t[1].forEach((nd,j)=>{const [ty,lab]=nd.split('|');const x=x0+j*(bw+gap);
+   s+=`<rect class="n-${ty}" x="${x}" y="${y+10}" width="${bw}" height="${TH-20}" rx="7" stroke-width="1.2"><title>${esc(lab)}</title></rect>`;
+   const lines=wrap(lab,Math.max(12,Math.floor(bw/6.6)));const ly=y+TH/2-(lines.length-1)*7+4;
+   lines.forEach((ln,k)=>{s+=`<text class="nt" x="${x+bw/2}" y="${ly+k*14}" text-anchor="middle">${esc(ln)}</text>`;});
+  });
+  if(i<ra.tiers.length-1){const cx=LW+avail/2;s+=`<line class="arr" x1="${cx}" y1="${y+TH}" x2="${cx}" y2="${y+TH+G-2}" marker-end="url(#ah)"/>`;}
+ });
+ return s+'</svg>';
+}
+let curRA='RA1';
+function renderRAList(){document.getElementById('raList').innerHTML=RAS.map(r=>`<button class="ra-btn ${r.id===curRA?'on':''}" data-r="${r.id}">${r.id} · ${esc(r.name)}<small>${esc(r.short)}</small></button>`).join('');document.querySelectorAll('.ra-btn').forEach(b=>b.onclick=()=>{curRA=b.dataset.r;renderRA();});}
+function renderRA(){
+ renderRAList();const ra=RAS.find(r=>r.id===curRA);
+ document.getElementById('raTitle').textContent=ra.id+' · '+ra.name;
+ document.getElementById('raDesc').textContent=ra.desc;
+ document.getElementById('raSvg').innerHTML=drawRA(ra);
+ document.getElementById('raDec').innerHTML=ra.dec.map(x=>`<li>${esc(x)}</li>`).join('');
+ document.getElementById('raThr').innerHTML=ra.thr.map(x=>`<li>${esc(x)}</li>`).join('')+(()=>{const t=[...new Set(ra.ctl.flatMap(id=>(XMAP[id]||[])[FWI.ATK]||[]))].sort(natSort);return t.length?`<li style="list-style:none;margin:10px 0 0 -18px"><span class="muted" style="font-size:11px">MITRE ATT&amp;CK techniques addressed (${t.length})</span><br>${t.map(x=>`<span class="ctag" title="${esc(FW.ATK.t[x]||'')}">${x}</span>`).join('')}</li>`:'';})();
+ document.getElementById('raCtl').innerHTML=ra.ctl.map(id=>{const c=CMAP[id];const s=st(id);return `<div class="ritem"><b class="mono">${id}</b> <span class="pill sev-${c.sev}">${c.sev}</span> <span class="muted" style="font-size:11px">${s?SL[s]:'not assessed'}</span><br><span class="sub">${esc(c.t)}</span></div>`;}).join('');
+}
+document.getElementById('raAssess').onclick=()=>{state.scope=curRA;save();document.getElementById('scope').value=curRA;renderGA();showTab('ga');};
+
+/* ===================== GAP ASSESSMENT ===================== */
+const scopeSel=document.getElementById('scope');
+scopeSel.innerHTML='<option value="ALL">Whole enterprise (all controls)</option>'+RAS.map(r=>`<option value="${r.id}">${r.id} · ${esc(r.name)}</option>`).join('');
+scopeSel.value=state.scope;scopeSel.onchange=()=>{state.scope=scopeSel.value;save();renderGA();};
+const orgIn=document.getElementById('org');orgIn.value=state.org||'';orgIn.oninput=()=>{state.org=orgIn.value;save();};
+document.getElementById('flt').onchange=renderGA;
+
+function compute(){
+ const dom={};DOMAINS.forEach(d=>dom[d.id]={num:0,den:0,gaps:{Critical:0,High:0,Medium:0,Low:0},n:0});
+ let num=0,den=0,total=0,done=0,gaps=0,crit=0;
+ CONTROLS.filter(applicable).forEach(c=>{total++;const s=st(c.id);if(s)done++;const w=SEVW[c.sev];dom[c.d].n++;
+  if(s in SV){num+=w*SV[s];den+=w;dom[c.d].num+=w*SV[s];dom[c.d].den+=w;if(SV[s]<1){gaps++;dom[c.d].gaps[c.sev]++;if(c.sev==='Critical')crit++;}}
+ });
+ return {dom,score:den?Math.round(num/den*100):null,total,done,gaps,crit};
+}
+function renderGA(){
+ const f=document.getElementById('flt').value;const tb=document.querySelector('#gaTbl tbody');let h='';
+ DOMAINS.forEach(d=>{
+  const rows=CONTROLS.filter(c=>c.d===d.id&&applicable(c)).filter(c=>{const s=st(c.id);if(f==='gaps')return s==='none'||s==='partial';if(f==='unset')return !s;return true;});
+  if(!rows.length)return;
+  h+=`<tr class="dom-h"><td colspan="6">${esc(d.name)} <span class="muted">${d.ref}</span></td></tr>`;
+  rows.forEach(c=>{const s=st(c.id);const n=(state.ans[c.id]&&state.ans[c.id].n)||'';
+   h+=`<tr><td class="mono"><b>${c.id}</b></td><td>${esc(c.t)}<div class="muted" style="font-size:12px;margin-top:3px">Fix: ${esc(c.fix)}</div>${fwLine(c.id)}</td><td class="mono">${c.ref==='Ext'?'Ext':'§'+c.ref}</td><td><span class="pill sev-${c.sev}">${c.sev}</span></td>
+   <td><select class="st s-${s}" data-id="${c.id}">${Object.keys(SL).map(k=>`<option value="${k}" ${k===s?'selected':''}>${SL[k]}</option>`).join('')}</select></td>
+   <td><input type="text" class="nt-in" data-id="${c.id}" value="${esc(n)}" placeholder="Evidence…" style="width:100%"></td></tr>`;});
+ });
+ tb.innerHTML=h||'<tr><td colspan="6" class="muted">No controls match this filter.</td></tr>';
+ tb.querySelectorAll('select.st').forEach(el=>el.onchange=()=>{const id=el.dataset.id;state.ans[id]=state.ans[id]||{};state.ans[id].s=el.value;el.className='st s-'+el.value;save();updateKPIs();renderCharts();if(document.getElementById('p-fm').classList.contains('on'))renderFM();});
+ tb.querySelectorAll('input.nt-in').forEach(el=>el.oninput=()=>{const id=el.dataset.id;state.ans[id]=state.ans[id]||{};state.ans[id].n=el.value;save();});
+ updateKPIs();renderCharts();
+}
+function updateKPIs(){
+ const r=compute();
+ const sc=r.score==null?'—':r.score;
+ ['kScore','hdrScore'].forEach(i=>document.getElementById(i).textContent=sc);
+ ['kLevel','hdrLevel'].forEach(i=>document.getElementById(i).textContent=level(r.score));
+ const pct=r.total?Math.round(r.done/r.total*100):0;
+ document.getElementById('kDone').textContent=pct+'%';document.getElementById('kBar').style.width=pct+'%';
+ document.getElementById('kGaps').textContent=r.gaps;document.getElementById('kGapsS').textContent=`${r.done} of ${r.total} controls assessed`;
+ document.getElementById('kCrit').textContent=r.crit;
+}
+let radar=null,bar=null;
+function tok(v,f){const x=getComputedStyle(document.documentElement).getPropertyValue(v).trim();return x||f;}
+function alpha(c,a){c=String(c).trim();if(c[0]==='#'){let x=c.slice(1);if(x.length===3)x=x.split('').map(y=>y+y).join('');const n=parseInt(x,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return c;}
+function chartTheme(){const T={txt:tok('--color-text','#1a1a1a'),txt2:tok('--color-text-secondary','#5e5e5e'),muted:tok('--color-text-muted','#9ca3af'),grid:tok('--color-border','rgba(0,0,0,.12)'),pri:tok('--color-primary','#9333ea'),ok:tok('--color-success','#22c55e'),warn:tok('--color-warning','#f59e0b'),err:tok('--color-error','#ef4444'),info:tok('--color-info','#3b82f6'),font:tok('--font-sans','sans-serif')};
+ if(typeof Chart!=='undefined'){Chart.defaults.font.family=T.font;Chart.defaults.color=T.txt2;}return T;}
+function renderCharts(){
+ if(typeof Chart==='undefined')return;
+ if(!document.getElementById('p-ga').classList.contains('on'))return;
+ const r=compute();const doms=DOMAINS.filter(d=>r.dom[d.id].n>0);
+ const cats=doms.map(d=>d.name.replace(' (Ext.)','').replace('Authentication, Authorization, Accounting','AAA'));
+ const vals=doms.map(d=>{const x=r.dom[d.id];return x.den?Math.round(x.num/x.den*100):null;});
+ const T=chartTheme();
+ if(radar){radar.destroy();radar=null;} if(bar){bar.destroy();bar=null;}
+ radar=new Chart(document.getElementById('chRadar'),{type:'radar',
+  data:{labels:cats.map(c=>wrap(c,16)),datasets:[
+   {label:'Current',data:vals,borderColor:T.pri,backgroundColor:alpha(T.pri,.2),pointBackgroundColor:T.pri,borderWidth:2,spanGaps:true},
+   {label:'Target (80)',data:cats.map(()=>80),borderColor:T.ok,borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false}]},
+  options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},
+   plugins:{title:{display:true,text:'Maturity by domain (%)',color:T.txt,font:{size:14,weight:'600'}},legend:{position:'bottom',labels:{color:T.txt2,boxWidth:12}}},
+   scales:{r:{min:0,max:100,ticks:{stepSize:25,display:false},grid:{color:T.grid},angleLines:{color:T.grid},pointLabels:{color:T.txt2,font:{size:10.5}}}}}});
+ const sev=['Critical','High','Medium','Low'],sc={Critical:T.err,High:T.warn,Medium:T.info,Low:T.muted};
+ bar=new Chart(document.getElementById('chBar'),{type:'bar',
+  data:{labels:cats,datasets:sev.map(s=>({label:s,data:doms.map(d=>r.dom[d.id].gaps[s]),backgroundColor:sc[s],borderWidth:0}))},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:{duration:400},
+   plugins:{title:{display:true,text:'Open gaps by domain & severity',color:T.txt,font:{size:14,weight:'600'}},legend:{position:'bottom',labels:{color:T.txt2,boxWidth:12}}},
+   scales:{x:{stacked:true,beginAtZero:true,ticks:{precision:0,color:T.txt2},grid:{color:T.grid}},y:{stacked:true,ticks:{color:T.txt2,font:{size:11}},grid:{display:false}}}}});
+}
+
+/* toolbar */
+document.getElementById('bSample').onclick=()=>{
+ const pat=['impl','partial','none','impl','partial','impl','none','impl','partial','impl','impl','none'];
+ CONTROLS.forEach((c,i)=>{let s=pat[(i*7+3)%pat.length];if(c.d==='ZTC'&&i%2)s='none';if(c.id==='R8'||c.id==='M4')s='partial';state.ans[c.id]={s,n:state.ans[c.id]&&state.ans[c.id].n||''};});
+ if(!state.org)state.org='Sample Enterprise';orgIn.value=state.org;save();renderGA();renderRA();
+};
+document.getElementById('bReset').onclick=()=>{if(!confirm('Clear all assessment answers?'))return;state.ans={};save();renderGA();renderRA();};
+function dl(name,data,type){try{const b=new Blob([data],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}catch(e){alert('Download blocked in this viewer. Open the file in a browser to export.');}}
+document.getElementById('bCsv').onclick=()=>{
+ const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+ const rows=[['Organisation','Scope','ID','Domain','Control','NSA Ref','Severity','Status','Evidence','Remediation','NIST CSF 2.0','CIS Controls v8','ISO 27001:2022','NIST SP 800-53 r5','MITRE ATT&CK']];
+ CONTROLS.filter(applicable).forEach(c=>rows.push([state.org,state.scope,c.id,DOMAINS.find(d=>d.id===c.d).name,c.t,c.ref,c.sev,SL[st(c.id)],(state.ans[c.id]||{}).n||'',c.fix,fwTags(c.id,'CSF').join('; '),fwTags(c.id,'CIS').join('; '),fwTags(c.id,'ISO').map(x=>'A.'+x).join('; '),fwTags(c.id,'N53').join('; '),fwTags(c.id,'ATK').join('; ')]));
+ dl('network_security_gap_assessment.csv',rows.map(r=>r.map(q).join(',')).join('\n'),'text/csv');
+};
+document.getElementById('bJson').onclick=()=>dl('network_security_assessment.json',JSON.stringify(state,null,2),'application/json');
+document.getElementById('fJson').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);state=Object.assign({org:'',scope:'ALL',ans:{}},o);save();orgIn.value=state.org;scopeSel.value=state.scope;renderGA();renderRA();}catch(x){alert('Invalid JSON file');}};rd.readAsText(f);};
+document.getElementById('bPrint').onclick=()=>{renderRoadmap();window.print();};
+
+/* ===================== ROADMAP ===================== */
+function gapsList(){return CONTROLS.filter(applicable).filter(c=>{const s=st(c.id);return s==='none'||s==='partial';}).map(c=>{const s=st(c.id);const risk=SEVW[c.sev]*(1-SV[s]);const ph=c.sev==='Critical'?1:(c.sev==='High'?2:3);return {c,s,risk,ph};}).sort((a,b)=>b.risk-a.risk||a.ph-b.ph);}
+function renderRoadmap(){
+ const g=gapsList();
+ const P=[{n:1,t:'Phase 1 · 0–30 days',s:'Stop the bleeding: Critical exposures'},{n:2,t:'Phase 2 · 31–90 days',s:'Harden: High-severity controls'},{n:3,t:'Phase 3 · 91–180 days',s:'Optimize: Medium/Low and maturity uplift'}];
+ document.getElementById('rmCols').innerHTML=P.map(p=>{const it=g.filter(x=>x.ph===p.n);return `<div class="card phase p${p.n}"><h3>${p.t}</h3><div class="muted" style="font-size:12px;margin-bottom:6px">${p.s} · ${it.length} item(s)</div>${it.length?it.map(x=>`<div class="ritem"><b class="mono">${x.c.id}</b> <span class="pill sev-${x.c.sev}">${x.c.sev}</span> <span class="muted" style="font-size:11px">${SL[x.s]}</span><br>${esc(x.c.fix)}</div>`).join(''):'<div class="muted">No open items.</div>'}</div>`;}).join('');
+ document.querySelector('#rmTbl tbody').innerHTML=g.length?g.map((x,i)=>`<tr><td class="mono">${i+1}</td><td class="mono"><b>${x.c.id}</b></td><td>${esc(x.c.t)}</td><td><span class="pill sev-${x.c.sev}">${x.c.sev}</span></td><td>${SL[x.s]}</td><td>${esc(x.c.fix)}</td><td>${fwTags(x.c.id,'ATK').map(t=>`<span class="ctag" title="${esc(FW.ATK.t[t]||'')}">${t}</span>`).join('')||'<span class="muted">—</span>'}</td><td class="mono">P${x.ph}</td></tr>`).join(''):'<tr><td colspan="8" class="muted">No open gaps in the current scope. Complete the Gap Assessment first.</td></tr>';
+}
+
+/* ===================== HARDENING BASELINE ===================== */
+let hSel=new Set(CONTROLS.filter(c=>c.cmd).map(c=>c.id));
+function renderHB(){
+ const list=CONTROLS.filter(c=>c.cmd);
+ document.getElementById('hList').innerHTML=DOMAINS.map(d=>{const cs=list.filter(c=>c.d===d.id);if(!cs.length)return '';return `<h3 style="margin-top:8px">${esc(d.name)}</h3>`+cs.map(c=>`<label class="chk"><input type="checkbox" data-id="${c.id}" ${hSel.has(c.id)?'checked':''}><span><b class="mono">${c.id}</b> ${esc(c.t)} <span class="muted mono">(${c.ref==='Ext'?'Ext':'§'+c.ref})</span></span></label>`).join('');}).join('');
+ document.querySelectorAll('#hList input').forEach(el=>el.onchange=()=>{el.checked?hSel.add(el.dataset.id):hSel.delete(el.dataset.id);genHB();});
+ genHB();
+}
+function genHB(){
+ const hdr=`! ==========================================================\n! Enterprise Network Hardening Baseline — Cisco IOS/IOS-XE\n! Source: NSA Network Infrastructure Security Guide v1.2\n! Org: ${state.org||'<ORG>'}   Generated: ${new Date().toISOString().slice(0,10)}\n! Review & replace all <PLACEHOLDERS>. Lab-validate first.\n! ==========================================================\n`;
+ const body=CONTROLS.filter(c=>c.cmd&&hSel.has(c.id)).map(c=>`!\n! [${c.id}] ${c.t} (${c.ref==='Ext'?'Ext':'NSA §'+c.ref})\n${c.cmd}`).join('\n');
+ document.getElementById('hOut').textContent=hdr+(body||'! (no controls selected)')+'\n!\nend\n! exec: copy running-config startup-config';
+}
+document.getElementById('hAll').onclick=()=>{hSel=new Set(CONTROLS.filter(c=>c.cmd).map(c=>c.id));renderHB();};
+document.getElementById('hNone').onclick=()=>{hSel=new Set();renderHB();};
+document.getElementById('hGaps').onclick=()=>{hSel=new Set(CONTROLS.filter(c=>c.cmd&&(st(c.id)==='none'||st(c.id)==='partial')).map(c=>c.id));renderHB();};
+document.getElementById('hCopy').onclick=()=>{const t=document.getElementById('hOut').textContent;const m=document.getElementById('hMsg');
+ (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>m.textContent='Copied ✓').catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById('hOut'));const s=window.getSelection();s.removeAllRanges();s.addRange(r);m.textContent='Selected — press Ctrl/Cmd+C';});};
+
+
+/* ===================== FRAMEWORK MAPPING VIEW ===================== */
+const FWK=Object.keys(FW);const FWI={};FWK.forEach((k,i)=>FWI[k]=i);
+function fwTags(id,fw){const m=XMAP[id];return m?m[FWI[fw]]:[];}
+function fwLine(id){const m=XMAP[id];if(!m)return '';return `<div class="fw">${FWK.map((k,i)=>`<b>${esc(FW[k].abbr)}</b> ${(m[i]||[]).map(x=>FW[k].pre+x).join(', ')||'—'}`).join(' · ')}</div>`;}
+function natSort(a,b){const sp=x=>x.split(/[.\-()]/).filter(Boolean);const pa=sp(a),pb=sp(b);for(let i=0;i<Math.max(pa.length,pb.length);i++){const x=pa[i]||'',y=pb[i]||'';const nx=+x,ny=+y;if(!isNaN(nx)&&!isNaN(ny)){if(nx!==ny)return nx-ny;}else if(x!==y)return x<y?-1:1;}return 0;}
+function reqCoverage(fw){
+ const idx=FWI[fw];const R={};
+ CONTROLS.forEach(c=>{(XMAP[c.id]||[[],[],[]])[idx].forEach(r=>{(R[r]=R[r]||[]).push(c);});});
+ const go=Object.keys(FW[fw].gn);return Object.keys(R).sort(natSort).map(r=>{
+  const cs=R[r].filter(applicable);let num=0,den=0,ass=0;
+  cs.forEach(c=>{const s=st(c.id);if(s in SV){num+=SEVW[c.sev]*SV[s];den+=SEVW[c.sev];ass++;}});
+  const pct=den?Math.round(num/den*100):null;
+  const status=!cs.length?'Out of scope':(pct==null?'Not assessed':(pct>=95?'Covered':(pct>=50?'Partial':'Gap')));
+  return {r,title:FW[fw].t[r]||'',grp:FW[fw].grp(r),all:R[r],cs,pct,ass,status};
+ }).sort((a,b)=>go.indexOf(a.grp)-go.indexOf(b.grp)||natSort(a.r,b.r));
+}
+let fmChart=null;
+function renderFM(){
+ const fw=document.getElementById('fmFw').value,view=document.getElementById('fmView').value,q=document.getElementById('fmQ').value.trim().toLowerCase();
+ document.getElementById('fmScope').textContent='Scope: '+(state.scope==='ALL'?'Whole enterprise':(RAS.find(r=>r.id===state.scope)||{}).name);
+ const rows=reqCoverage(fw);const inS=rows.filter(x=>x.status!=='Out of scope');
+ const cnt=k=>inS.filter(x=>x.status===k).length;
+ document.getElementById('fmK1').textContent=inS.length;document.getElementById('fmK1l').textContent=FW[fw].unit+' mapped';
+ document.getElementById('fmK1s').textContent=`${FW[fw].name} · ${inS.filter(x=>x.status!=='Not assessed').length} assessed`;
+ document.getElementById('fmK2').textContent=cnt('Covered');document.getElementById('fmK3').textContent=cnt('Partial');document.getElementById('fmK4').textContent=cnt('Gap');
+ /* chart: coverage by group */
+ const groups={};inS.forEach(x=>{const g=groups[x.grp]=groups[x.grp]||{num:0,den:0,n:0};g.n++;if(x.pct!=null){g.num+=x.pct;g.den++;}});
+ const gk=Object.keys(FW[fw].gn).filter(k=>groups[k]);
+ const cats=gk.map(k=>FW[fw].gn[k]||k);const data=gk.map(k=>groups[k].den?Math.round(groups[k].num/groups[k].den):null);
+ if(typeof Chart!=='undefined'&&document.getElementById('p-fm').classList.contains('on')){
+  const T=chartTheme();
+  const col=v=>v==null?T.muted:(v>=95?T.ok:(v>=50?T.warn:T.err));
+  if(fmChart){fmChart.destroy();fmChart=null;}
+  fmChart=new Chart(document.getElementById('chFm'),{data:{labels:cats,datasets:[
+    {type:'bar',label:'Coverage %',data:data,backgroundColor:data.map(col),borderRadius:4,order:2},
+    {type:'line',label:'Target 80',data:cats.map(()=>80),borderColor:T.ok,borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false,order:1}]},
+   options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},
+    plugins:{legend:{display:false},title:{display:true,text:FW[fw].name+' — average requirement coverage by '+FW[fw].gl+' (%)',color:T.txt,font:{size:14,weight:'600'}},
+     tooltip:{callbacks:{label:ctx=>ctx.datasetIndex===0?('Coverage: '+(ctx.raw==null?'not assessed':ctx.raw+'%')):'Target: 80%',afterLabel:ctx=>{if(ctx.datasetIndex!==0)return '';const g=groups[gk[ctx.dataIndex]];return `Requirements: ${g.n} (${g.den} assessed)`;}}}},
+    scales:{y:{min:0,max:100,grid:{color:T.grid},ticks:{color:T.txt2}},x:{grid:{display:false},ticks:{color:T.txt2,font:{size:11}}}}}});
+ }
+ const th=document.querySelector('#fmTbl thead'),tb=document.querySelector('#fmTbl tbody');
+ const csCls=s=>s==='Covered'?'Covered':(s==='Partial'?'Partial':(s==='Gap'?'Gap':'NA'));
+ if(view==='req'){
+  th.innerHTML=`<tr><th style="width:100px">${esc(FW[fw].abbr)} ID</th><th>Title</th><th style="width:34%">Mapped blueprint controls</th><th style="width:70px">Coverage</th><th style="width:100px">Status</th></tr>`;
+  const f=rows.filter(x=>!q||(x.r+' '+x.title+' '+x.all.map(c=>c.id+' '+c.t).join(' ')).toLowerCase().includes(q));
+  let lastG=null,h='';
+  f.forEach(x=>{if(x.grp!==lastG){lastG=x.grp;h+=`<tr class="dom-h"><td colspan="5">${esc(FW[fw].gn[x.grp]||x.grp)}</td></tr>`;}
+   h+=`<tr><td class="mono"><b>${FW[fw].pre}${x.r}</b></td><td>${esc(x.title)}</td><td>${x.all.map(c=>{const s=st(c.id);const inSc=applicable(c);return `<span class="ctag ${s==='impl'?'cs-Covered':s==='partial'?'cs-Partial':s==='none'?'cs-Gap':''}" title="${esc(c.t)} — ${inSc?(SL[s]||'not assessed'):'out of scope'}" style="${inSc?'':'opacity:.45'}">${c.id}</span>`;}).join('')}</td><td class="cov">${x.pct==null?'—':x.pct+'%'}</td><td><span class="pill cs-${csCls(x.status)}">${x.status}</span></td></tr>`;});
+  tb.innerHTML=h||'<tr><td colspan="5" class="muted">No matches.</td></tr>';
+ }else{
+  th.innerHTML=`<tr><th style="width:56px">ID</th><th>Blueprint control</th><th style="width:60px">NSA</th>${FWK.map(k=>`<th>${esc(FW[k].abbr)}</th>`).join('')}<th style="width:110px">Status</th></tr>`;
+  let h='';
+  DOMAINS.forEach(d=>{const cs=CONTROLS.filter(c=>c.d===d.id&&applicable(c)).filter(c=>{const m=XMAP[c.id]||[[],[],[]];return !q||(c.id+' '+c.t+' '+m.flat().join(' ')).toLowerCase().includes(q);});if(!cs.length)return;
+   h+=`<tr class="dom-h"><td colspan="${4+FWK.length}">${esc(d.name)}</td></tr>`;
+   cs.forEach(c=>{const m=XMAP[c.id]||[[],[],[]];const s=st(c.id);
+    const tg=(arr,fwk,pre)=>arr.length?arr.map(r=>`<span class="ctag" title="${esc(FW[fwk].t[r]||'')}">${pre}${r}</span>`).join(''):'<span class="muted">—</span>';
+    h+=`<tr><td class="mono"><b>${c.id}</b></td><td>${esc(c.t)}</td><td class="mono">${c.ref==='Ext'?'Ext':'§'+c.ref}</td>${FWK.map((k,i)=>`<td>${tg(m[i]||[],k,FW[k].pre)}</td>`).join('')}<td><span class="pill ${s==='impl'?'cs-Covered':s==='partial'?'cs-Partial':s==='none'?'cs-Gap':'cs-NA'}">${SL[s]==='— Not assessed —'?'Not assessed':SL[s]}</span></td></tr>`;});
+  });
+  tb.innerHTML=h||'<tr><td colspan="7" class="muted">No matches.</td></tr>';
+ }
+}
+['fmFw','fmView'].forEach(i=>document.getElementById(i).onchange=renderFM);
+document.getElementById('fmQ').oninput=renderFM;
+
+/* ===================== INIT ===================== */
+renderRA();renderGA();
+document.querySelectorAll('.card').forEach(c=>c.classList.add('fade'));
+
+/* theme toggle */
+document.getElementById('themeBtn').onclick=()=>{const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('nsbp_theme',t);}catch(e){}renderCharts();if(document.getElementById('p-fm').classList.contains('on'))renderFM();};
+/* source link: auto-derive on GitHub Pages (owner.github.io/repo) */
+(function(){const a=document.getElementById('srcLink');const host=location.hostname;if(host.endsWith('.github.io')){const owner=host.split('.')[0];const repo=location.pathname.split('/').filter(Boolean)[0]||(owner+'.github.io');a.href=`https://github.com/${owner}/${repo}`;}else{a.href='https://github.com/';}})();
+/* deep links: #ga, #fm ...  and ?sample=1 loads demo data when empty */
+(function(){const t=location.hash.slice(1);if(new URLSearchParams(location.search).has('sample')&&!Object.keys(state.ans).length)document.getElementById('bSample').click();if(['bp','ra','ga','rm','hb','fm'].includes(t))showTab(t);})();
+</script>
+</body>
+</html>

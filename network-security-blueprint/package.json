@@ -1,0 +1,29 @@
+{
+  "name": "network-security-blueprint",
+  "version": "1.1.0",
+  "description": "Interactive enterprise network security blueprint, reference architectures, gap analysis and NIST CSF 2.0 / CIS v8 / ISO 27001:2022 cross-mapping.",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "build": "node scripts/build-standalone.js",
+    "serve": "python3 -m http.server 8080",
+    "check": "npm run validate && npm run build"
+  },
+  "keywords": [
+    "network-security",
+    "zero-trust",
+    "gap-analysis",
+    "nist-csf",
+    "cis-controls",
+    "iso27001",
+    "nsa",
+    "security-architecture",
+    "hardening",
+    "nist-800-53",
+    "mitre-attack"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}
